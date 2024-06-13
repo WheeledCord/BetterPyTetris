@@ -262,8 +262,16 @@ class Shapes:
     S = shape('S','0',' 01-23 ')
     T = shape('T','1','012- 3 ')
     Z = shape('Z','2','01 - 23')
-    def random() -> shape:
-        return random.choice(list(all_shapes.values()))
+    def __makeBag():
+        out = []
+        for shape in list(all_shapes.values()):
+            out.insert(random.randint(0,len(out)),shape)
+        return out
+    bag = __makeBag()
+    def fromBag() -> shape:
+        if len(Shapes.bag) == 0:
+            Shapes.bag = Shapes.__makeBag()
+        return Shapes.bag.pop(0)
 
 
 
@@ -277,7 +285,7 @@ def getInp(control_scheme):
 
 # Clearing Lines
 def clearLine(y: int):
-    global linesCleared,AREpaused,AREpauseLength,stamps,lines
+    global linesCleared,AREpaused,AREpauseLength,stamps,lines,lvl
     sounds['line'].play()
     linesCleared += 1
     AREpaused = True
@@ -336,12 +344,12 @@ while replay:
     speed = 48
     stats = {'I':0,'J':0,'L':0,'O':0,'S':0,'T':0,'Z':0}
 
-    currentShape = Shapes.random()
+    currentShape = Shapes.fromBag()
     currentShape.x = 4
     currentShape.y = 0
     currentShape.rotation = 1
     currentShape.rotate(-1)
-    nextShape = Shapes.random()
+    nextShape = Shapes.fromBag()
     nextShape.x = 4
     nextShape.y = 0
     nextShape.rotation = 1
@@ -555,7 +563,7 @@ while replay:
                 nextShape.rotate(-1)
                 currentShape = nextShape
                 ghostShape = Shapes.shape('G'+currentShape.id,'ghost',currentShape.hitbox)
-                nextShape = Shapes.random()
+                nextShape = Shapes.fromBag()
             elif last_fall >= speed and not getInp('down'):
                 currentShape.y += 1
                 last_fall = 0
