@@ -31,6 +31,7 @@ pygame.mixer.music.load('sounds/music.mp3')
 
 sounds = {
     "move":pygame.mixer.Sound('sounds/move.mp3'),
+    "soft_drop":pygame.mixer.Sound('sounds/soft_drop.mp3'),
     "rotate":pygame.mixer.Sound('sounds/rotate.mp3'),
     "place":pygame.mixer.Sound('sounds/place.mp3'),
     "line":pygame.mixer.Sound('sounds/line.mp3'),
@@ -432,6 +433,7 @@ while replay:
                 holding_down = False
             if ((not holding_down) and getInp('down')) and currentShape.y + currentShape.height < 20 and not collided and (last_soft_input == 0 or speed == 1):
                 currentShape.y += 1
+                sounds['soft_drop'].play()
                 score += 1
                 if score > 999999:
                     score = 999999
