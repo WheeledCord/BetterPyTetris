@@ -54,6 +54,7 @@ controls = {
     "right": {pygame.K_d,pygame.K_RIGHT},
     "down": {pygame.K_s,pygame.K_DOWN},
     "hard_down": {pygame.K_SPACE},
+    "hold": {pygame.K_h},
     "left_rot": {pygame.K_q,pygame.K_RSHIFT},
     "right_rot": {pygame.K_e,pygame.K_END},
     "pause": {pygame.K_RETURN},
@@ -86,7 +87,6 @@ AREpaused = False
 AREpauseLength = 0
 linesCleared = 0
 
-top_score = 10000
 score = 0
 lines = 0
 lvl = 0
@@ -341,7 +341,6 @@ while replay:
     AREpauseLength = 0
     linesCleared = 0
 
-    top_score = 10000
     score = 0
     lines = 0
     lvl = 0
@@ -358,6 +357,8 @@ while replay:
     nextShape.y = 0
     nextShape.rotation = 1
     nextShape.rotate(-1)
+    holdShape = None
+    holdCount = 0
     ghostShape = Shapes.shape('G'+currentShape.id,'ghost',currentShape.hitbox)
 
     pygame.mixer.music.play(-1)
@@ -409,6 +410,35 @@ while replay:
                             break
                     if i:
                         sounds['rotate'].play()
+                if (not paused) and (not AREpaused) and event.key in controls['hold'] and holdCount == 0:
+                    if holdShape == None:
+                        currentShape.x = 4
+                        currentShape.y = 0
+                        currentShape.rotation = 1
+                        currentShape.rotate(-1)
+                        holdShape = currentShape
+                        nextShape.x = 4
+                        nextShape.y = 0
+                        nextShape.rotation = 1
+                        nextShape.rotate(-1)
+                        currentShape = nextShape
+                        ghostShape = Shapes.shape('G'+currentShape.id,'ghost',currentShape.hitbox)
+                        nextShape = Shapes.fromBag()
+                    else:
+                        currentShape.x = 4
+                        currentShape.y = 0
+                        currentShape.rotation = 1
+                        currentShape.rotate(-1)
+                        holdShape.x = 4
+                        holdShape.y = 0
+                        holdShape.rotation = 1
+                        holdShape.rotate(-1)
+                        temp = currentShape
+                        currentShape = holdShape
+                        holdShape = temp
+                        del temp
+                        ghostShape = Shapes.shape('G'+currentShape.id,'ghost',currentShape.hitbox)
+                    holdCount += 1
         if (not paused) and (not AREpaused):
             # Input
             if (not getInp('left')) and (not getInp('right')):
@@ -450,9 +480,8 @@ while replay:
         if AREpaused:
             flashStamps()
         writeNums((152,16),lines,3)
-        writeNums((192,32),top_score,6)
-        writeNums((192,56),score,6)
-        writeNums((208,160),lvl,2)
+        writeNums((192,32),score,6)
+        writeNums((208,72),lvl,2)
         i = 0
         for shape in 'TJZOSLI':
             writeNums((48,88+16*i),stats[shape],3)
@@ -464,6 +493,8 @@ while replay:
                 break
         if running:
             screen.blit(nextShape.gui_sprite,(191,95))
+            if holdShape != None:
+                screen.blit(holdShape.gui_sprite,(191,151))
             if show_ghost:
                 ghostShape.draw()
         currentShape.draw()
@@ -558,8 +589,6 @@ while replay:
             score += (((cleared_count % 4) % 3) % 2)*(40*(lvl+1)) # singles
             if score > 999999:
                 score = 999999
-            if score > top_score:
-                top_score = score
 
             if collided and ((last_fall >= speed) or getInp('hard_down')):
                 currentShape.stamp()
@@ -576,6 +605,7 @@ while replay:
                 currentShape = nextShape
                 ghostShape = Shapes.shape('G'+currentShape.id,'ghost',currentShape.hitbox)
                 nextShape = Shapes.fromBag()
+                holdCount = 0
                 if getInp('down') or getInp('hard_down'):
                     holding_down = True
             elif last_fall >= speed and not ((not holding_down) and (getInp('down') or getInp('hard_down'))):
