@@ -99,7 +99,7 @@ stats = {
 }
 
 
-# Wow new line
+
 
 # Map storage
 tileMap = []
