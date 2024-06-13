@@ -52,6 +52,7 @@ controls = {
     "left": {pygame.K_a,pygame.K_LEFT},
     "right": {pygame.K_d,pygame.K_RIGHT},
     "down": {pygame.K_s,pygame.K_DOWN},
+    "hard_down": {pygame.K_SPACE},
     "left_rot": {pygame.K_q,pygame.K_RSHIFT},
     "right_rot": {pygame.K_e,pygame.K_END},
     "pause": {pygame.K_RETURN},
@@ -427,7 +428,7 @@ while replay:
                 else:
                     last_input = 6
                 holding_input = True
-            if holding_down and not getInp('down'):
+            if holding_down and not (getInp('down') or getInp('hard_down')):
                 holding_down = False
             if ((not holding_down) and getInp('down')) and currentShape.y + currentShape.height < 20 and not collided and (last_soft_input == 0 or speed == 1):
                 currentShape.y += 1
@@ -435,6 +436,11 @@ while replay:
                 if score > 999999:
                     score = 999999
                 last_soft_input = 2
+            if ((not holding_down) and getInp('hard_down')) and currentShape.y < ghostShape.y and not collided:
+                score += 2*(ghostShape.y - currentShape.y)
+                currentShape.y = ghostShape.y
+                if score > 999999:
+                    score = 999999
 
         # Rendering
         screen = pygame.image.load(f'images/gui/bg.png').convert()
@@ -553,7 +559,7 @@ while replay:
             if score > top_score:
                 top_score = score
 
-            if collided and last_fall >= speed:
+            if collided and ((last_fall >= speed) or getInp('hard_down')):
                 currentShape.stamp()
                 sounds['place'].play()
                 if not currentShape.id in stats.keys():
@@ -568,9 +574,9 @@ while replay:
                 currentShape = nextShape
                 ghostShape = Shapes.shape('G'+currentShape.id,'ghost',currentShape.hitbox)
                 nextShape = Shapes.fromBag()
-                if getInp('down'):
+                if getInp('down') or getInp('hard_down'):
                     holding_down = True
-            elif last_fall >= speed and not ((not holding_down) and getInp('down')):
+            elif last_fall >= speed and not ((not holding_down) and (getInp('down') or getInp('hard_down'))):
                 currentShape.y += 1
                 last_fall = 0
             else:
