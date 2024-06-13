@@ -98,6 +98,9 @@ stats = {
     'Z':0
 }
 
+
+# Wow new line
+
 # Map storage
 tileMap = []
 def clearMap():
