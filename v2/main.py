@@ -76,6 +76,7 @@ last_fall = 0
 last_input = 0
 last_soft_input = 0
 holding_input = False
+holding_down = False
 running = True
 closed = False
 paused = False
@@ -285,7 +286,7 @@ def getInp(control_scheme):
 
 # Clearing Lines
 def clearLine(y: int):
-    global linesCleared,AREpaused,AREpauseLength,stamps,lines,lvl
+    global linesCleared,AREpaused,AREpauseLength,stamps,lines,lvl,speed
     sounds['line'].play()
     linesCleared += 1
     AREpaused = True
@@ -330,6 +331,7 @@ while replay:
     last_input = 0
     last_soft_input = 0
     holding_input = False
+    holding_down = False
     running = True
     closed = False
     paused = False
@@ -425,7 +427,9 @@ while replay:
                 else:
                     last_input = 6
                 holding_input = True
-            if getInp('down') and currentShape.y + currentShape.height < 20 and not collided and (last_soft_input == 0 or speed == 1):
+            if holding_down and not getInp('down'):
+                holding_down = False
+            if ((not holding_down) and getInp('down')) and currentShape.y + currentShape.height < 20 and not collided and (last_soft_input == 0 or speed == 1):
                 currentShape.y += 1
                 score += 1
                 if score > 999999:
@@ -564,7 +568,9 @@ while replay:
                 currentShape = nextShape
                 ghostShape = Shapes.shape('G'+currentShape.id,'ghost',currentShape.hitbox)
                 nextShape = Shapes.fromBag()
-            elif last_fall >= speed and not getInp('down'):
+                if getInp('down'):
+                    holding_down = True
+            elif last_fall >= speed and not ((not holding_down) and getInp('down')):
                 currentShape.y += 1
                 last_fall = 0
             else:
