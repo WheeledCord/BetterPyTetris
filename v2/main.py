@@ -243,20 +243,13 @@ class Shapes:
             self.piecesGroup.draw(screen)
             
         def stamp(self):
-            global stamps
             for piece in self.pieces:
                 x = 96+(8*(self.x+piece.localx))
                 y = 40+(8*(self.y+piece.localy))
                 s = piece.sprite
                 s.globalx = self.x+piece.localx
                 s.globaly = self.y+piece.localy
-                temp = []
                 setTileonMap(self.x+piece.localx,self.y+piece.localy,self.id)
-                for pos,piece in stamps:
-                    if pos != (x,y):
-                        temp.append((pos,piece))
-                stamps = temp
-                stamps.append(((x,y),s))
             self.makePieces()
             
     I = shape('I','1','0123')
@@ -530,6 +523,20 @@ while replay:
         # Rendering
         screen = pygame.image.load(f'images/gui/bg.png').convert_alpha()
         screen.fill('black')
+        if not AREpaused:
+            stamps = []
+            y = 0
+            for row in tileMap:
+                x = 0
+                for tile in row:
+                    if tile != '':
+                        sprite = pygame.sprite.Sprite()
+                        sprite.image = pygame.image.load(f'images/pieces/{all_shapes[tile].piece_sprite}.png').convert_alpha()
+                        sprite.rect = sprite.image.get_rect()
+                        sprite.globaly = y
+                        stamps.append(((96+8*x,40+8*y),sprite))
+                    x += 1
+                y += 1
         drawStamps()
         if AREpaused:
             flashStamps()
