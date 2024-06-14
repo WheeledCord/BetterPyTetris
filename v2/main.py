@@ -320,6 +320,40 @@ def clearLine(y: int):
     if lines > 999:
         lines = 999
 
+def getCollision():
+    global collided,left_collided,right_collided
+    collided = False
+    left_collided = False
+    right_collided = False
+    
+    tempMap = copy.deepcopy(tileMap)
+    for piece in currentShape.pieces:
+        x = currentShape.x+piece.localx
+        y = currentShape.y+piece.localy
+        tempMap[y][x] = 'x'
+    x = 0
+    y = 0
+    for row in tempMap:
+        for c in row:
+            if c == 'x':
+                if currentShape.y == (20-currentShape.height):
+                        collided = True
+                elif not (tempMap[y+1][x] in 'x '):
+                    collided = True
+                
+                if currentShape.x <= 0:
+                    left_collided = True
+                elif not (tempMap[y][x-1] in 'x '):
+                    left_collided = True
+                
+                if currentShape.x >= 10-currentShape.width:
+                    right_collided = True
+                elif not (tempMap[y][x+1] in 'x '):
+                    right_collided = True
+            x += 1
+        y += 1
+        x = 0
+    del tempMap
 
 replay = True
 
@@ -400,6 +434,7 @@ while replay:
                             break
                     if i:
                         sounds['rotate'].play()
+                        getCollision()
                 if (not paused) and (not AREpaused) and event.key in controls['right_rot']:
                     currentShape.rotate(1)
                     i = True
@@ -410,6 +445,7 @@ while replay:
                             break
                     if i:
                         sounds['rotate'].play()
+                        getCollision()
                 if (not paused) and (not AREpaused) and event.key in controls['hold'] and holdCount == 0:
                     if holdShape == None:
                         currentShape.x = 4
@@ -439,6 +475,7 @@ while replay:
                         del temp
                         ghostShape = Shapes.shape('G'+currentShape.id,'ghost',currentShape.hitbox)
                     holdCount += 1
+                    getCollision()
         if (not paused) and (not AREpaused):
             # Input
             if (not getInp('left')) and (not getInp('right')):
@@ -451,6 +488,7 @@ while replay:
                 else:
                     last_input = 6
                 holding_input = True
+                getCollision()
             if getInp('right') and (not getInp('left')) and (not right_collided) and last_input == 0:
                 currentShape.x += 1
                 sounds['move'].play()
@@ -459,6 +497,7 @@ while replay:
                 else:
                     last_input = 6
                 holding_input = True
+                getCollision()
             if holding_down and not (getInp('down') or getInp('hard_down')):
                 holding_down = False
             if ((not holding_down) and getInp('down')) and currentShape.y + currentShape.height < 20 and not collided and (last_soft_input == 0 or speed == 1):
@@ -468,6 +507,7 @@ while replay:
                 if score > 999999:
                     score = 999999
                 last_soft_input = 2
+                getCollision()
             if ((not holding_down) and getInp('hard_down')) and currentShape.y < ghostShape.y and not collided:
                 score += 2*(ghostShape.y - currentShape.y)
                 currentShape.y = ghostShape.y
@@ -479,13 +519,6 @@ while replay:
         drawStamps()
         if AREpaused:
             flashStamps()
-        writeNums((152,16),lines,3)
-        writeNums((192,32),score,6)
-        writeNums((208,72),lvl,2)
-        i = 0
-        for shape in 'TJZOSLI':
-            writeNums((48,88+16*i),stats[shape],3)
-            i += 1
         # Test game over
         for c in tileMap[0]:
             if c != '':
@@ -495,9 +528,18 @@ while replay:
             screen.blit(nextShape.gui_sprite,(191,95))
             if holdShape != None:
                 screen.blit(holdShape.gui_sprite,(191,151))
-            if show_ghost:
-                ghostShape.draw()
         currentShape.draw()
+        screen.fill((100, 0, 0, 0), special_flags=pygame.BLEND_RGB_SUB)
+        if running and show_ghost:
+            ghostShape.draw()
+        screen.blit(pygame.image.load(f'images/gui/staticText.png').convert_alpha(),(0,0))
+        writeNums((152,16),lines,3)
+        writeNums((192,32),score,6)
+        writeNums((208,72),lvl,2)
+        i = 0
+        for shape in 'TJZOSLI':
+            writeNums((48,88+16*i),stats[shape],3)
+            i += 1
         if paused and running:
             screen.blit(paused_overlay,(0,0))
         if not running:
@@ -537,39 +579,9 @@ while replay:
                         y += 1
                         x = 0
                     del tempMap
+
             # Collision and line clearing
-            collided = False
-            left_collided = False
-            right_collided = False
-            
-            tempMap = copy.deepcopy(tileMap)
-            for piece in currentShape.pieces:
-                x = currentShape.x+piece.localx
-                y = currentShape.y+piece.localy
-                tempMap[y][x] = 'x'
-            x = 0
-            y = 0
-            for row in tempMap:
-                for c in row:
-                    if c == 'x':
-                        if currentShape.y == (20-currentShape.height):
-                                collided = True
-                        elif not (tempMap[y+1][x] in 'x '):
-                            collided = True
-                        
-                        if currentShape.x <= 0:
-                            left_collided = True
-                        elif not (tempMap[y][x-1] in 'x '):
-                            left_collided = True
-                        
-                        if currentShape.x >= 10-currentShape.width:
-                            right_collided = True
-                        elif not (tempMap[y][x+1] in 'x '):
-                            right_collided = True
-                    x += 1
-                y += 1
-                x = 0
-            del tempMap
+            getCollision()
 
             i = 0
             cleared_count = 0
