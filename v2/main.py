@@ -35,7 +35,8 @@ sounds = {
     "rotate":pygame.mixer.Sound('sounds/rotate.mp3'),
     "place":pygame.mixer.Sound('sounds/place.mp3'),
     "line":pygame.mixer.Sound('sounds/line.mp3'),
-    "death":pygame.mixer.Sound('sounds/death.mp3')
+    "death":pygame.mixer.Sound('sounds/death.mp3'),
+    "fall":pygame.mixer.Sound('sounds/fall.mp3')
 }
 
 pieces = [
@@ -652,6 +653,7 @@ while replay:
                     holding_down = True
             elif last_fall >= speed and not ((not holding_down) and (getInp('down') or getInp('hard_down'))):
                 currentShape.y += 1
+                sounds['fall'].play()
                 last_fall = 0
             else:
                 last_fall += 1
