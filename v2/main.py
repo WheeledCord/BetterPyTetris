@@ -355,7 +355,19 @@ def getCollision():
         x = 0
     del tempMap
 
+def hsv_to_rgb( h:int, s:int, v:int, a:int=255 ) -> tuple:
+    out = pygame.Color(0)
+    out.hsva = (h,s,v,a)
+    return (out.r, out.g, out.b, out.a)
+
+def num_wrap(value:int,max:int):
+    out = value
+    while out > max:
+        out = out - max
+    return out
+
 replay = True
+
 
 
 # Main game loop
@@ -515,7 +527,8 @@ while replay:
                     score = 999999
 
         # Rendering
-        screen = pygame.image.load(f'images/gui/bg.png').convert()
+        screen = pygame.image.load(f'images/gui/bg.png').convert_alpha()
+        screen.fill('black')
         drawStamps()
         if AREpaused:
             flashStamps()
@@ -528,10 +541,27 @@ while replay:
             screen.blit(nextShape.gui_sprite,(191,95))
             if holdShape != None:
                 screen.blit(holdShape.gui_sprite,(191,151))
-        currentShape.draw()
-        screen.fill((100, 0, 0, 0), special_flags=pygame.BLEND_RGB_SUB)
-        if running and show_ghost:
-            ghostShape.draw()
+            if show_ghost:
+                ghostShape.draw()
+            currentShape.draw()
+        if lvl == 0:
+            layer1 = pygame.image.load(f'images/gui/bg.png').convert_alpha()
+            layer1.fill(hsv_to_rgb(300,41,100,0), special_flags=pygame.BLEND_RGB_MULT)
+            layer2 = pygame.image.load(f'images/gui/bg1.png').convert_alpha()
+            layer2.fill(hsv_to_rgb(300,20,100,0), special_flags=pygame.BLEND_RGB_MULT)
+            screen.blit(layer1,(0,0))
+            screen.blit(layer2,(0,0))
+            screen.blit(layer2,(0,0))
+            screen.blit(pygame.image.load(f'images/gui/bg2.png').convert_alpha(),(0,0))
+        else:
+            screen.blit(pygame.image.load(f'images/gui/bg.png').convert_alpha(),(0,0))
+            screen.fill(hsv_to_rgb(num_wrap(lvl*12,360),41,100,0), special_flags=pygame.BLEND_RGB_MULT)
+            layer2 = pygame.image.load(f'images/gui/bg1.png').convert_alpha()
+            layer2.fill(hsv_to_rgb(num_wrap(lvl*12,360),20,100,0), special_flags=pygame.BLEND_RGB_MULT)
+            screen.blit(layer2,(0,0))
+            layer3 = pygame.image.load(f'images/gui/bg2.png').convert_alpha()
+            layer3.fill(hsv_to_rgb(num_wrap(lvl*12,360),20,100,0), special_flags=pygame.BLEND_RGB_MULT)
+            screen.blit(layer3,(0,0))
         screen.blit(pygame.image.load(f'images/gui/staticText.png').convert_alpha(),(0,0))
         writeNums((152,16),lines,3)
         writeNums((192,32),score,6)
