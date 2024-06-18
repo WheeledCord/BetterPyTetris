@@ -560,7 +560,7 @@ while replay:
             if show_ghost:
                 ghostShape.draw()
             currentShape.draw()
-        if lvl == 0 or lvl % 31 == 0:
+        if lvl == 0:
             layer1 = pygame.image.load(f'images/gui/bg.png').convert_alpha()
             layer1.fill(hsv_to_rgb(300,41,100,0), special_flags=pygame.BLEND_RGB_MULT)
             layer2 = pygame.image.load(f'images/gui/bg1.png').convert_alpha()
