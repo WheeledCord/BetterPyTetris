@@ -360,8 +360,6 @@ def overflowNum(value:int,minValue:int = 0,maxValue:int = 360):
     return out
 print(overflowNum(370))
 print(overflowNum(-10))
-while True:
-    pass
 
 replay = True
 
