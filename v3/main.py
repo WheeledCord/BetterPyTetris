@@ -1,8 +1,8 @@
 # - Imports - #
-import random
-from typing import Literal
 import pygame
 import os
+import random
+from typing import Literal
 
 # - Inits - #
 pygame.init()
