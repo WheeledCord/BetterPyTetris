@@ -354,10 +354,10 @@ def hsv_to_rgb( h:int, s:int, v:int, a:int=255 ) -> tuple:
     out.hsva = (h,s,v,a)
     return (out.r, out.g, out.b, out.a)
 
-def num_wrap(value:int,max:int):
+def num_wrap(value:int,maxValue:int):
     out = value
-    while out > max:
-        out = out - max
+    if out > maxValue:
+        out = out - maxValue
     return out
 
 replay = True
@@ -383,7 +383,7 @@ while replay:
 
     score = 0
     lines = 0
-    lvl = 0
+    lvl = 30
     speed = 48
     stats = {'I':0,'J':0,'L':0,'O':0,'S':0,'T':0,'Z':0}
 
@@ -430,6 +430,7 @@ while replay:
                     replay = False
                 if event.key in controls['ghost']:
                     show_ghost = not show_ghost
+                    lvl += 1
                 if (not paused) and (not AREpaused) and event.key in controls['left_rot']:
                     currentShape.rotate(-1)
                     i = True
