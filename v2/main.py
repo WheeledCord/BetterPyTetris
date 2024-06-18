@@ -354,13 +354,10 @@ def hsv_to_rgb( h:int, s:int, v:int, a:int=255 ) -> tuple:
     out.hsva = (h,s,v,a)
     return (out.r, out.g, out.b, out.a)
 
-def num_wrap(value:int,maxValue:int):
-    out = value
-    if out > maxValue:
-        out = out - maxValue
-    if out < 0:
-        out = maxValue-out
-    return out
+def overflow(number, min_val, max_val):
+    range_size = max_val - min_val + 1
+    overflowed_value = ((number - min_val) % range_size + range_size) % range_size + min_val
+    return overflowed_value
 
 replay = True
 
