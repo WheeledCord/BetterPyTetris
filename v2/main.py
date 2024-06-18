@@ -1,8 +1,8 @@
 # ~ Imports ~ #
 import pygame
-import random
-import os
-import copy
+from random import randint
+from os import environ as osEnviron
+from copy import deepcopy
 
 # Inits
 pygame.init()
@@ -13,7 +13,7 @@ clock = pygame.time.Clock()
 
 # Window scale
 def setScale(scale: int):
-    os.environ['SDL_VIDEO_CENTERED'] = '1'
+    osEnviron['SDL_VIDEO_CENTERED'] = '1'
     pygame.display.set_mode((scale*display_width, scale*display_height))
 
 display = pygame.display.set_mode((display_width, display_height))
@@ -262,7 +262,7 @@ class Shapes:
     def __makeBag():
         out = []
         for shape in list(all_shapes.values()):
-            out.insert(random.randint(0,len(out)),shape)
+            out.insert(randint(0,len(out)),shape)
         return out
     bag = __makeBag()
     def fromBag() -> shape:
@@ -320,7 +320,7 @@ def getCollision():
     left_collided = False
     right_collided = False
     
-    tempMap = copy.deepcopy(tileMap)
+    tempMap = deepcopy(tileMap)
     for piece in currentShape.pieces:
         x = currentShape.x+piece.localx
         y = currentShape.y+piece.localy
@@ -486,6 +486,7 @@ while replay:
             # Input
             if (not getInp('left')) and (not getInp('right')):
                 holding_input = False
+                last_input = 0
             if getInp('left') and (not getInp('right')) and (not left_collided) and last_input == 0:
                 currentShape.x -= 1
                 sounds['move'].play()
@@ -600,7 +601,7 @@ while replay:
                 if ghostShape.y == (20-ghostShape.height):
                     ghostCollided = True
                 else:
-                    tempMap = copy.deepcopy(tileMap)
+                    tempMap = deepcopy(tileMap)
                     for piece in ghostShape.pieces:
                         x = ghostShape.x+piece.localx
                         y = ghostShape.y+piece.localy
