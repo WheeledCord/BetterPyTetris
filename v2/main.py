@@ -354,13 +354,14 @@ def hsv_to_rgb( h:int, s:int, v:int, a:int=255 ) -> tuple:
     out.hsva = (h,s,v,a)
     return (out.r, out.g, out.b, out.a)
 
-def num_wrap(value:int,maxValue:int):
-    out = value
-    if out > maxValue:
-        out = out - maxValue
-    if out < 0:
-        out = maxValue-out
+def overflowNum(value:int,minValue:int = 0,maxValue:int = 360):
+    rangeSize = maxValue-minValue+1
+    out = ((value - minValue) % rangeSize + rangeSize) % rangeSize + minValue
     return out
+print(overflowNum(370))
+print(overflowNum(-10))
+while True:
+    pass
 
 replay = True
 
@@ -567,13 +568,13 @@ while replay:
             screen.blit(pygame.image.load(f'images/gui/bg2.png').convert_alpha(),(0,0))
         else:
             screen.blit(pygame.image.load(f'images/gui/bg.png').convert_alpha(),(0,0))
-            print(num_wrap(lvl*12,360))
-            screen.fill(hsv_to_rgb(num_wrap(lvl*12,360),41,100,0), special_flags=pygame.BLEND_RGB_MULT)
+            print(overflowNum(lvl*12,360))
+            screen.fill(hsv_to_rgb(overflowNum(lvl*12,360),41,100,0), special_flags=pygame.BLEND_RGB_MULT)
             layer2 = pygame.image.load(f'images/gui/bg1.png').convert_alpha()
-            layer2.fill(hsv_to_rgb(num_wrap(lvl*12,360),20,100,0), special_flags=pygame.BLEND_RGB_MULT)
+            layer2.fill(hsv_to_rgb(overflowNum(lvl*12,360),20,100,0), special_flags=pygame.BLEND_RGB_MULT)
             screen.blit(layer2,(0,0))
             layer3 = pygame.image.load(f'images/gui/bg2.png').convert_alpha()
-            layer3.fill(hsv_to_rgb(num_wrap(lvl*12,360),20,100,0), special_flags=pygame.BLEND_RGB_MULT)
+            layer3.fill(hsv_to_rgb(overflowNum(lvl*12,360),20,100,0), special_flags=pygame.BLEND_RGB_MULT)
             screen.blit(layer3,(0,0))
         screen.blit(pygame.image.load(f'images/gui/staticText.png').convert_alpha(),(0,0))
         writeNums((152,16),lines,3)
