@@ -65,6 +65,7 @@ controls = {
     "scale2": {pygame.K_2},
     "scale3": {pygame.K_3},
     "scale4": {pygame.K_4},
+    "colour": {pygame.K_c},
     "vol_up": {pygame.K_KP_PLUS},
     "vol_down": {pygame.K_KP_MINUS},
     "mute": {pygame.K_0}
@@ -84,6 +85,7 @@ holding_down = False
 running = True
 closed = False
 paused = False
+coloured = True
 AREpaused = False
 AREpauseLength = 0
 linesCleared = 0
@@ -383,6 +385,7 @@ while replay:
     running = True
     closed = False
     paused = False
+    coloured = True
     AREpaused = False
     AREpauseLength = 0
     linesCleared = 0
@@ -425,6 +428,8 @@ while replay:
                     setScale(3)
                 elif event.key in controls['scale4']:
                     setScale(4)
+                if event.key  in controls['colour']:
+                    coloured = not coloured
                 if event.key  in controls['pause']:
                     paused = not paused
                     if paused:
@@ -436,7 +441,6 @@ while replay:
                     replay = False
                 if event.key in controls['ghost']:
                     show_ghost = not show_ghost
-                    lvl += 1
                 if (not paused) and (not AREpaused) and event.key in controls['left_rot']:
                     currentShape.rotate(-1)
                     i = True
@@ -560,7 +564,7 @@ while replay:
             if show_ghost:
                 ghostShape.draw()
             currentShape.draw()
-        if lvl == 0:
+        if lvl == 0 or not coloured:
             layer1 = pygame.image.load(f'images/gui/bg.png').convert_alpha()
             layer1.fill(hsv_to_rgb(300,41,100,0), special_flags=pygame.BLEND_RGB_MULT)
             layer2 = pygame.image.load(f'images/gui/bg1.png').convert_alpha()
