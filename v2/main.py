@@ -358,6 +358,8 @@ def num_wrap(value:int,maxValue:int):
     out = value
     if out > maxValue:
         out = out - maxValue
+    if out < 0:
+        out = maxValue-out
     return out
 
 replay = True
@@ -565,6 +567,7 @@ while replay:
             screen.blit(pygame.image.load(f'images/gui/bg2.png').convert_alpha(),(0,0))
         else:
             screen.blit(pygame.image.load(f'images/gui/bg.png').convert_alpha(),(0,0))
+            print(num_wrap(lvl*12,360))
             screen.fill(hsv_to_rgb(num_wrap(lvl*12,360),41,100,0), special_flags=pygame.BLEND_RGB_MULT)
             layer2 = pygame.image.load(f'images/gui/bg1.png').convert_alpha()
             layer2.fill(hsv_to_rgb(num_wrap(lvl*12,360),20,100,0), special_flags=pygame.BLEND_RGB_MULT)
