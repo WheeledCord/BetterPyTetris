@@ -354,12 +354,17 @@ def hsv_to_rgb( h:int, s:int, v:int, a:int=255 ) -> tuple:
     out.hsva = (h,s,v,a)
     return (out.r, out.g, out.b, out.a)
 
-def overflowNum(value:int,minValue:int = 0,maxValue:int = 360):
-    rangeSize = maxValue-minValue+1
-    out = ((value - minValue) % rangeSize + rangeSize) % rangeSize + minValue
-    return out
-print(overflowNum(370))
-print(overflowNum(-10))
+def overflowNum(value, maxValue):
+    # Calculate the range size
+    range_size = maxValue + 1
+    
+    # Wrap the value around within the range
+    if value < 0:
+        value = maxValue - ((0 - value - 1) % range_size) - 1
+    elif value > maxValue:
+        value = 1 + ((value - maxValue - 1) % range_size)
+    
+    return value
 
 replay = True
 
@@ -384,7 +389,7 @@ while replay:
 
     score = 0
     lines = 0
-    lvl = 30
+    lvl = 0
     speed = 48
     stats = {'I':0,'J':0,'L':0,'O':0,'S':0,'T':0,'Z':0}
 
@@ -555,7 +560,7 @@ while replay:
             if show_ghost:
                 ghostShape.draw()
             currentShape.draw()
-        if lvl == 0:
+        if lvl == 0 or lvl % 31 == 0:
             layer1 = pygame.image.load(f'images/gui/bg.png').convert_alpha()
             layer1.fill(hsv_to_rgb(300,41,100,0), special_flags=pygame.BLEND_RGB_MULT)
             layer2 = pygame.image.load(f'images/gui/bg1.png').convert_alpha()
@@ -566,7 +571,6 @@ while replay:
             screen.blit(pygame.image.load(f'images/gui/bg2.png').convert_alpha(),(0,0))
         else:
             screen.blit(pygame.image.load(f'images/gui/bg.png').convert_alpha(),(0,0))
-            print(overflowNum(lvl*12,360))
             screen.fill(hsv_to_rgb(overflowNum(lvl*12,360),41,100,0), special_flags=pygame.BLEND_RGB_MULT)
             layer2 = pygame.image.load(f'images/gui/bg1.png').convert_alpha()
             layer2.fill(hsv_to_rgb(overflowNum(lvl*12,360),20,100,0), special_flags=pygame.BLEND_RGB_MULT)
