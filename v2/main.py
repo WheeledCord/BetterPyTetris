@@ -24,29 +24,25 @@ pygame.display.set_caption('PyTetris')
 setScale(3)
 
 # Load assets
-
-def assetPath(relative_path):
-    return osPath.join(osPath.abspath("."), relative_path)
-
-screen = pygame.image.load(assetPath('images/gui/bg.png')).convert()
-paused_overlay = pygame.image.load(assetPath('images/gui/paused.png')).convert_alpha()
-death_overlay = pygame.image.load(assetPath('images/gui/gameOver.png')).convert_alpha()
-pygame.mixer.music.load(assetPath('sounds/music.mp3'))
+screen = pygame.image.load('images/gui/bg.png').convert()
+paused_overlay = pygame.image.load('images/gui/paused.png').convert_alpha()
+death_overlay = pygame.image.load('images/gui/gameOver.png').convert_alpha()
+pygame.mixer.music.load('sounds/music.mp3')
 
 sounds = {
-    'move':pygame.mixer.Sound(assetPath('sounds/move.mp3')),
-    'soft_drop':pygame.mixer.Sound(assetPath('sounds/soft_drop.mp3')),
-    'rotate':pygame.mixer.Sound(assetPath('sounds/rotate.mp3')),
-    'place':pygame.mixer.Sound(assetPath('sounds/place.mp3')),
-    'line':pygame.mixer.Sound(assetPath('sounds/line.mp3')),
-    'death':pygame.mixer.Sound(assetPath('sounds/death.mp3')),
-    'fall':pygame.mixer.Sound(assetPath('sounds/fall.mp3'))
+    'move':pygame.mixer.Sound('sounds/move.mp3'),
+    'soft_drop':pygame.mixer.Sound('sounds/soft_drop.mp3'),
+    'rotate':pygame.mixer.Sound('sounds/rotate.mp3'),
+    'place':pygame.mixer.Sound('sounds/place.mp3'),
+    'line':pygame.mixer.Sound('sounds/line.mp3'),
+    'death':pygame.mixer.Sound('sounds/death.mp3'),
+    'fall':pygame.mixer.Sound('sounds/fall.mp3')
 }
 pieces = [
-    pygame.image.load(assetPath('images/pieces/0.png')).convert_alpha(),
-    pygame.image.load(assetPath('images/pieces/1.png')).convert_alpha(),
-    pygame.image.load(assetPath('images/pieces/2.png')).convert_alpha(),
-    pygame.image.load(assetPath('images/pieces/ghost.png')).convert_alpha()
+    pygame.image.load('images/pieces/0.png').convert_alpha(),
+    pygame.image.load('images/pieces/1.png').convert_alpha(),
+    pygame.image.load('images/pieces/2.png').convert_alpha(),
+    pygame.image.load('images/pieces/ghost.png').convert_alpha()
 ]
 
 
@@ -186,7 +182,7 @@ def writeNums(pos: tuple, num: int, length: int):
     full_num = (length-len(full_num))*'0'+full_num
     i = 0
     for c in full_num:
-        screen.blit(pygame.image.load(assetPath(f'images/text/{c}.png')).convert_alpha(), (pos[0]+8*i,pos[1]))
+        screen.blit(pygame.image.load(f'images/text/{c}.png').convert_alpha(), (pos[0]+8*i,pos[1]))
         i += 1
 
 
@@ -200,7 +196,7 @@ class Shapes:
         class __piece:
             def __init__(self,image,id,localx,localy,pieceid) -> None:
                 self.sprite = pygame.sprite.Sprite()
-                self.sprite.image = pygame.image.load(assetPath(f'images/pieces/{image}.png')).convert_alpha()
+                self.sprite.image = pygame.image.load(f'images/pieces/{image}.png').convert_alpha()
                 self.sprite.rect = self.sprite.image.get_rect()
                 self.pieceid = pieceid
                 self.id = id
@@ -211,7 +207,7 @@ class Shapes:
         def __init__(self,id: str,piece_sprite: str,hitbox: str) -> None:
             self.id = id
             if id[0] != 'G':
-                self.gui_sprite = pygame.image.load(assetPath(f'images/shapes/{id}.png')).convert_alpha()
+                self.gui_sprite = pygame.image.load(f'images/shapes/{id}.png').convert_alpha()
 
             self.hitbox = hitbox
             self.base_hitbox = hitbox
@@ -608,7 +604,7 @@ while replay:
                     score = 999999
 
         # Rendering
-        screen = pygame.image.load(assetPath('images/gui/bg.png')).convert_alpha()
+        screen = pygame.image.load('images/gui/bg.png').convert_alpha()
         screen.fill('black')
         if not AREpaused:
             stamps = []
@@ -618,7 +614,7 @@ while replay:
                 for tile in row:
                     if tile != '':
                         sprite = pygame.sprite.Sprite()
-                        sprite.image = pygame.image.load(assetPath(f'images/pieces/{all_shapes[tile].piece_sprite}.png')).convert_alpha()
+                        sprite.image = pygame.image.load(f'images/pieces/{all_shapes[tile].piece_sprite}.png').convert_alpha()
                         sprite.rect = sprite.image.get_rect()
                         sprite.globaly = y
                         stamps.append(((96+8*x,40+8*y),sprite))
@@ -640,24 +636,24 @@ while replay:
                 ghostShape.draw()
             currentShape.draw()
         if lvl == 0 or not coloured:
-            layer1 = pygame.image.load(assetPath('images/gui/bg.png')).convert_alpha()
+            layer1 = pygame.image.load('images/gui/bg.png').convert_alpha()
             layer1.fill(hsv_to_rgb(300,41,100,0), special_flags=pygame.BLEND_RGB_MULT)
-            layer2 = pygame.image.load(assetPath('images/gui/bg1.png')).convert_alpha()
+            layer2 = pygame.image.load('images/gui/bg1.png').convert_alpha()
             layer2.fill(hsv_to_rgb(300,20,100,0), special_flags=pygame.BLEND_RGB_MULT)
             screen.blit(layer1,(0,0))
             screen.blit(layer2,(0,0))
             screen.blit(layer2,(0,0))
-            screen.blit(pygame.image.load(assetPath('images/gui/bg2.png')).convert_alpha(),(0,0))
+            screen.blit(pygame.image.load('images/gui/bg2.png').convert_alpha(),(0,0))
         else:
-            screen.blit(pygame.image.load(assetPath('images/gui/bg.png')).convert_alpha(),(0,0))
+            screen.blit(pygame.image.load('images/gui/bg.png').convert_alpha(),(0,0))
             screen.fill(hsv_to_rgb(overflowNum(lvl*12,360),41,100,0), special_flags=pygame.BLEND_RGB_MULT)
-            layer2 = pygame.image.load(assetPath('images/gui/bg1.png')).convert_alpha()
+            layer2 = pygame.image.load('images/gui/bg1.png').convert_alpha()
             layer2.fill(hsv_to_rgb(overflowNum(lvl*12,360),20,100,0), special_flags=pygame.BLEND_RGB_MULT)
             screen.blit(layer2,(0,0))
-            layer3 = pygame.image.load(assetPath('images/gui/bg2.png')).convert_alpha()
+            layer3 = pygame.image.load('images/gui/bg2.png').convert_alpha()
             layer3.fill(hsv_to_rgb(overflowNum(lvl*12,360),20,100,0), special_flags=pygame.BLEND_RGB_MULT)
             screen.blit(layer3,(0,0))
-        screen.blit(pygame.image.load(assetPath('images/gui/staticText.png')).convert_alpha(),(0,0))
+        screen.blit(pygame.image.load('images/gui/staticText.png').convert_alpha(),(0,0))
         writeNums((152,16),lines,3)
         writeNums((192,32),score,6)
         writeNums((208,72),lvl,2)
