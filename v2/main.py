@@ -54,40 +54,47 @@ pieces = [
 
 # - Load controls - #
 controls = {
-    'left rotate': {pygame.K_z},
-    'right rotate': {pygame.K_UP},
-    'move left': {pygame.K_LEFT},
-    'move right': {pygame.K_RIGHT},
-    'soft down': {pygame.K_DOWN},
-    'hard down': {pygame.K_SPACE},
-    'hold': {pygame.K_c},
-    'pause': {pygame.K_RETURN},
-    'quit': {pygame.K_ESCAPE},
-    'toggle ghost': {pygame.K_g},
-    'toggle colour': {pygame.K_c},
-    'scale 1': {pygame.K_1},
-    'scale 2': {pygame.K_2},
-    'scale 3': {pygame.K_3},
-    'scale 4': {pygame.K_4},
-    'volume up': {61},
-    'volume down': {45},
-    'mute': {pygame.K_0}
+    'left rotate': [pygame.K_z],
+    'right rotate': [pygame.K_UP],
+    'move left': [pygame.K_LEFT],
+    'move right': [pygame.K_RIGHT],
+    'soft down': [pygame.K_DOWN],
+    'hard down': [pygame.K_SPACE],
+    'hold': [pygame.K_c],
+    'pause': [pygame.K_RETURN],
+    'quit': [pygame.K_ESCAPE],
+    'toggle ghost': [pygame.K_g],
+    'toggle colour': [pygame.K_c],
+    'scale 1': [pygame.K_1],
+    'scale 2': [pygame.K_2],
+    'scale 3': [pygame.K_3],
+    'scale 4': [pygame.K_4],
+    'volume up': [61],
+    'volume down': [45],
+    'mute': [pygame.K_0]
 }
 
-def load_keybinding(id,keys: str) -> int:
-    global controls
-    if id not in controls.keys():
-        raise ValueError(f"Extra control added: {id}")
-    for key in keys:
-        try:
-            controls[id] = pygame.key.key_code(key)
-        except ValueError as e:
-            raise ValueError(f"Key string not recognized by Pygame: '{key}'") from e
-try:
-    for id,keys in jsonLoad(open('controls.json','r')).items():
-        print(f'{id}: {keys}')
-except:
-    jsonDump(controls,'controls.json')
+if osPath.isfile('controls.json'):
+    jsonControls = jsonLoad(open('controls.json','r'))
+    for id in controls.keys():
+        if id in jsonControls.keys():
+            keys = jsonControls[id]
+            temp = []
+            for key in keys:
+                try:
+                    temp.append(pygame.key.key_code(key))
+                except ValueError as e:
+                    raise ValueError(f"Key string not recognized by Pygame: '{key}'") from e
+                controls[id] = temp
+else:
+    with open('controls.json','w') as file:
+        convertedControls = deepcopy(controls)
+        for k,v in controls.items():
+            temp = []
+            for key in v:
+                temp.append(pygame.key.name(key))
+            convertedControls[k] = temp
+        jsonDump(convertedControls,file)
 # - Load controls - #
 # Define variables
 
