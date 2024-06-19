@@ -82,6 +82,8 @@ last_input = 0
 last_soft_input = 0
 holding_input = False
 holding_down = False
+left_collided = False
+right_collided = False
 running = True
 closed = False
 paused = False
@@ -379,6 +381,8 @@ while replay:
     flash_stamps = []
     last_fall = 0
     last_input = 0
+    left_collided = False
+    right_collided = False
     last_soft_input = 0
     holding_input = False
     holding_down = False
