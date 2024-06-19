@@ -38,7 +38,6 @@ sounds = {
     "death":pygame.mixer.Sound('sounds/death.mp3'),
     "fall":pygame.mixer.Sound('sounds/fall.mp3')
 }
-
 pieces = [
     pygame.image.load(f'images/pieces/0.png').convert_alpha(),
     pygame.image.load(f'images/pieces/1.png').convert_alpha(),
@@ -66,8 +65,8 @@ controls = {
     "scale3": {pygame.K_3},
     "scale4": {pygame.K_4},
     "colour": {pygame.K_c},
-    "vol_up": {pygame.K_KP_PLUS},
-    "vol_down": {pygame.K_KP_MINUS},
+    "vol_up": {pygame.K_UNDERSCORE},
+    "vol_down": {pygame.K_EQUALS},
     "mute": {pygame.K_0}
 }
 
@@ -88,6 +87,7 @@ running = True
 closed = False
 paused = False
 coloured = True
+volume = 1.0
 AREpaused = False
 AREpauseLength = 0
 linesCleared = 0
@@ -420,6 +420,7 @@ while replay:
     closed = False
     paused = False
     coloured = True
+    volume = 1.0
     AREpaused = False
     AREpauseLength = 0
     linesCleared = 0
@@ -446,14 +447,31 @@ while replay:
 
     pygame.mixer.music.play(-1)
     while running:
+        for id,sound in sounds.items():
+            sound.set_volume(volume)
+        pygame.mixer.music.set_volume(volume)
         clock.tick(frameRate)
         for event in pygame.event.get():
             # Detect window closed
             if event.type == pygame.QUIT:
                 closed = True
                 replay = False
-            # Scale keys
             if event.type == pygame.KEYDOWN:
+                if event.key in controls['vol_up']:
+                    volume += 0.1
+                    if volume < 0:
+                        volume = 0
+                    elif volume > 1.0:
+                        volume = 1.0
+                elif event.key in controls['vol_down']:
+                    volume -= 0.1
+                    if volume < 0:
+                        volume = 0
+                    elif volume > 1.0:
+                        volume = 1.0
+                elif event.key in controls['mute']:
+                    volume = 0
+
                 if event.key in controls['scale1']:
                     setScale(1)
                 elif event.key in controls['scale2']:
@@ -462,7 +480,7 @@ while replay:
                     setScale(3)
                 elif event.key in controls['scale4']:
                     setScale(4)
-                if event.key  in controls['colour']:
+                if event.key in controls['colour']:
                     coloured = not coloured
                 if event.key  in controls['pause']:
                     paused = not paused
