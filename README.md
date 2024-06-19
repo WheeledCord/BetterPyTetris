@@ -14,7 +14,7 @@ we made tetris in pygame. pain insued.
 **Pause:** enter\
 **Quit:** escape\
 **Toggle ghost:** g\
-**Toggle colour:** c\
+**Toggle colour:** x\
 **Scale 1:** 1\
 **Scale 2:** 2\
 **Scale 3:** 3\

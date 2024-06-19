@@ -60,7 +60,7 @@ controls = {
     'pause': [pygame.K_RETURN],
     'quit': [pygame.K_ESCAPE],
     'toggle ghost': [pygame.K_g],
-    'toggle colour': [pygame.K_c],
+    'toggle colour': [pygame.K_x],
     'scale 1': [pygame.K_1],
     'scale 2': [pygame.K_2],
     'scale 3': [pygame.K_3],
