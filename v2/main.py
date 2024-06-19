@@ -65,8 +65,8 @@ controls = {
     "scale3": {pygame.K_3},
     "scale4": {pygame.K_4},
     "colour": {pygame.K_c},
-    "vol_up": {pygame.K_UNDERSCORE},
-    "vol_down": {pygame.K_EQUALS},
+    "vol_up": {61},
+    "vol_down": {45},
     "mute": {pygame.K_0}
 }
 
