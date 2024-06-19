@@ -2,7 +2,9 @@
 import pygame
 from random import randint
 from os import environ as osEnviron
+from os import environ as osEnviron
 from copy import deepcopy
+from json import load as jsonLoad
 
 # Inits
 pygame.init()
@@ -30,13 +32,13 @@ death_overlay = pygame.image.load(f'images/gui/gameOver.png').convert_alpha()
 pygame.mixer.music.load('sounds/music.mp3')
 
 sounds = {
-    "move":pygame.mixer.Sound('sounds/move.mp3'),
-    "soft_drop":pygame.mixer.Sound('sounds/soft_drop.mp3'),
-    "rotate":pygame.mixer.Sound('sounds/rotate.mp3'),
-    "place":pygame.mixer.Sound('sounds/place.mp3'),
-    "line":pygame.mixer.Sound('sounds/line.mp3'),
-    "death":pygame.mixer.Sound('sounds/death.mp3'),
-    "fall":pygame.mixer.Sound('sounds/fall.mp3')
+    'move':pygame.mixer.Sound('sounds/move.mp3'),
+    'soft_drop':pygame.mixer.Sound('sounds/soft_drop.mp3'),
+    'rotate':pygame.mixer.Sound('sounds/rotate.mp3'),
+    'place':pygame.mixer.Sound('sounds/place.mp3'),
+    'line':pygame.mixer.Sound('sounds/line.mp3'),
+    'death':pygame.mixer.Sound('sounds/death.mp3'),
+    'fall':pygame.mixer.Sound('sounds/fall.mp3')
 }
 pieces = [
     pygame.image.load(f'images/pieces/0.png').convert_alpha(),
@@ -48,29 +50,40 @@ pieces = [
 
 
 
-# Load controls
+# - Load controls - #
 controls = {
-    "left": {pygame.K_a,pygame.K_LEFT},
-    "right": {pygame.K_d,pygame.K_RIGHT},
-    "down": {pygame.K_s,pygame.K_DOWN},
-    "hard_down": {pygame.K_SPACE},
-    "hold": {pygame.K_h},
-    "left_rot": {pygame.K_q,pygame.K_RSHIFT},
-    "right_rot": {pygame.K_e,pygame.K_END},
-    "pause": {pygame.K_RETURN},
-    "quit": {pygame.K_ESCAPE},
-    "ghost": {pygame.K_g,},
-    "scale1": {pygame.K_1},
-    "scale2": {pygame.K_2},
-    "scale3": {pygame.K_3},
-    "scale4": {pygame.K_4},
-    "colour": {pygame.K_c},
-    "vol_up": {61},
-    "vol_down": {45},
-    "mute": {pygame.K_0}
+    'left rotate': {pygame.K_z},
+    'right rotate': {pygame.K_UP},
+    'move left': {pygame.K_LEFT},
+    'move right': {pygame.K_RIGHT},
+    'soft down': {pygame.K_DOWN},
+    'hard down': {pygame.K_SPACE},
+    'hold': {pygame.K_c},
+    'pause': {pygame.K_RETURN},
+    'quit': {pygame.K_ESCAPE},
+    'toggle ghost': {pygame.K_g},
+    'toggle colour': {pygame.K_c},
+    'scale 1': {pygame.K_1},
+    'scale 2': {pygame.K_2},
+    'scale 3': {pygame.K_3},
+    'scale 4': {pygame.K_4},
+    'volume up': {61},
+    'volume down': {45},
+    'mute': {pygame.K_0}
 }
 
-
+def load_keybinding(id,keys: str) -> int:
+    global controls
+    if id not in controls.keys():
+        raise ValueError(f"Extra control added: {id}")
+    for key in keys:
+        try:
+            controls[id] = pygame.key.key_code(key)
+        except ValueError as e:
+            raise ValueError(f"Key string not recognized by Pygame: '{key}'") from e
+for id,keys in jsonLoad(open('controls.json','r')).items():
+    print(f'{id}: {keys}')
+# - Load controls - #
 # Define variables
 
 frameRate = 60
@@ -153,7 +166,7 @@ def flashStamps():
         if AREpauseLength <= (TotalAREpauseLength/(2*AREFlashes)) or (AREpauseLength > (TotalAREpauseLength/(2*AREFlashes))*2 and AREpauseLength <= (TotalAREpauseLength/(2*AREFlashes))*3) or (AREpauseLength > (TotalAREpauseLength/(2*AREFlashes))*4 and AREpauseLength <= (TotalAREpauseLength/(2*AREFlashes))*5):
             screen.blit(sprite.image, pos)
         else:
-            pygame.draw.rect(screen, "white", (pos[0], pos[1], 7, 7))
+            pygame.draw.rect(screen, 'white', (pos[0], pos[1], 7, 7))
 
 # Draw Text
 def writeNums(pos: tuple, num: int, length: int):
@@ -455,13 +468,13 @@ while replay:
                 closed = True
                 replay = False
             if event.type == pygame.KEYDOWN:
-                if event.key in controls['vol_up']:
+                if event.key in controls['volume up']:
                     volume += 0.1
                     if volume < 0:
                         volume = 0
                     elif volume > 1.0:
                         volume = 1.0
-                elif event.key in controls['vol_down']:
+                elif event.key in controls['volume down']:
                     volume -= 0.1
                     if volume < 0:
                         volume = 0
@@ -470,15 +483,15 @@ while replay:
                 elif event.key in controls['mute']:
                     volume = 0
 
-                if event.key in controls['scale1']:
+                if event.key in controls['scale 1']:
                     setScale(1)
-                elif event.key in controls['scale2']:
+                elif event.key in controls['scale 2']:
                     setScale(2)
-                elif event.key in controls['scale3']:
+                elif event.key in controls['scale 3']:
                     setScale(3)
-                elif event.key in controls['scale4']:
+                elif event.key in controls['scale 4']:
                     setScale(4)
-                if event.key in controls['colour']:
+                if event.key in controls['toggle colour']:
                     coloured = not coloured
                 if event.key  in controls['pause']:
                     paused = not paused
@@ -489,9 +502,9 @@ while replay:
                 if event.key in controls['quit']:
                     closed = True
                     replay = False
-                if event.key in controls['ghost']:
+                if event.key in controls['toggle ghost']:
                     show_ghost = not show_ghost
-                if (not paused) and (not AREpaused) and event.key in controls['left_rot']:
+                if (not paused) and (not AREpaused) and event.key in controls['left rotate']:
                     currentShape.rotate(-1)
                     i = True
                     for piece in currentShape.pieces:
@@ -502,7 +515,7 @@ while replay:
                     if i:
                         sounds['rotate'].play()
                         getCollision()
-                if (not paused) and (not AREpaused) and event.key in controls['right_rot']:
+                if (not paused) and (not AREpaused) and event.key in controls['right rotate']:
                     currentShape.rotate(1)
                     i = True
                     for piece in currentShape.pieces:
@@ -545,10 +558,10 @@ while replay:
                     getCollision()
         if (not paused) and (not AREpaused):
             # Input
-            if (not getInp('left')) and (not getInp('right')):
+            if (not getInp('move left')) and (not getInp('move right')):
                 holding_input = False
                 last_input = 0
-            if getInp('left') and (not getInp('right')) and (not left_collided) and last_input == 0:
+            if getInp('move left') and (not getInp('move right')) and (not left_collided) and last_input == 0:
                 currentShape.x -= 1
                 sounds['move'].play()
                 if holding_input == False:
@@ -557,7 +570,7 @@ while replay:
                     last_input = 6
                 holding_input = True
                 getCollision()
-            if getInp('right') and (not getInp('left')) and (not right_collided) and last_input == 0:
+            if getInp('move right') and (not getInp('move left')) and (not right_collided) and last_input == 0:
                 currentShape.x += 1
                 sounds['move'].play()
                 if holding_input == False:
@@ -566,9 +579,9 @@ while replay:
                     last_input = 6
                 holding_input = True
                 getCollision()
-            if holding_down and not (getInp('down') or getInp('hard_down')):
+            if holding_down and not (getInp('soft down') or getInp('hard down')):
                 holding_down = False
-            if ((not holding_down) and getInp('down')) and currentShape.y + currentShape.height < 20 and not collided and (last_soft_input == 0 or speed == 1):
+            if ((not holding_down) and getInp('soft down')) and currentShape.y + currentShape.height < 20 and not collided and (last_soft_input == 0 or speed == 1):
                 currentShape.y += 1
                 sounds['soft_drop'].play()
                 score += 1
@@ -576,7 +589,7 @@ while replay:
                     score = 999999
                 last_soft_input = 2
                 getCollision()
-            if ((not holding_down) and getInp('hard_down')) and currentShape.y < ghostShape.y and not collided:
+            if ((not holding_down) and getInp('hard down')) and currentShape.y < ghostShape.y and not collided:
                 score += 2*(ghostShape.y - currentShape.y)
                 currentShape.y = ghostShape.y
                 if score > 999999:
@@ -672,7 +685,7 @@ while replay:
             if score > 999999:
                 score = 999999
 
-            if collided and ((last_fall >= speed) or getInp('hard_down')):
+            if collided and ((last_fall >= speed) or getInp('hard down')):
                 currentShape.stamp()
                 sounds['place'].play()
                 if not currentShape.id in stats.keys():
@@ -688,9 +701,9 @@ while replay:
                 ghostShape = Shapes.shape('G'+currentShape.id,'ghost',currentShape.hitbox)
                 nextShape = Shapes.fromBag()
                 holdCount = 0
-                if getInp('down') or getInp('hard_down'):
+                if getInp('soft down') or getInp('hard down'):
                     holding_down = True
-            elif last_fall >= speed and not ((not holding_down) and (getInp('down') or getInp('hard_down'))):
+            elif last_fall >= speed and not ((not holding_down) and (getInp('soft down') or getInp('hard down'))):
                 currentShape.y += 1
                 sounds['fall'].play()
                 last_fall = 0
