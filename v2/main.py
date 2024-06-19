@@ -3,9 +3,9 @@ import pygame
 from random import randint
 from os import environ as osEnviron
 from os import path as osPath
-from sys import _MEIPASS as MEIPASS
 from copy import deepcopy
 from json import load as jsonLoad
+from json import dump as jsonDump
 
 # Inits
 pygame.init()
@@ -26,12 +26,7 @@ setScale(3)
 # Load assets
 
 def assetPath(relative_path):
-    try:
-        base_path = MEIPASS
-    except Exception:
-        base_path = osPath.abspath(".")
-
-    return osPath.join(base_path, relative_path)
+    return osPath.join(osPath.abspath("."), relative_path)
 
 screen = pygame.image.load(assetPath('images/gui/bg.png')).convert()
 paused_overlay = pygame.image.load(assetPath('images/gui/paused.png')).convert_alpha()
@@ -88,8 +83,11 @@ def load_keybinding(id,keys: str) -> int:
             controls[id] = pygame.key.key_code(key)
         except ValueError as e:
             raise ValueError(f"Key string not recognized by Pygame: '{key}'") from e
-for id,keys in jsonLoad(open('controls.json'),'r').items():
-    print(f'{id}: {keys}')
+try:
+    for id,keys in jsonLoad(open('controls.json','r')).items():
+        print(f'{id}: {keys}')
+except:
+    jsonDump(controls,'controls.json')
 # - Load controls - #
 # Define variables
 
