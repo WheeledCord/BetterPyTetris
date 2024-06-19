@@ -419,8 +419,6 @@ while replay:
     running = True
     closed = False
     paused = False
-    coloured = True
-    volume = 1.0
     AREpaused = False
     AREpauseLength = 0
     linesCleared = 0
