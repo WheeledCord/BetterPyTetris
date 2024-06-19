@@ -3,21 +3,21 @@
 we're making tetris in pygame. pain is ***eternal***
 
 ## Default Controls
-**left rotate:** z\
-**right rotate:** up\
-**move left:** left\
-**move right:** right\
-**soft down:** down\
-**hard down:** space\
-**hold:** c\
-**pause:** enter\
-**quit:** escape\
-**toggle ghost:** g\
-**toggle colour:** c\
-**scale 1:** 1\
-**scale 2:** 2\
-**scale 3:** 3\
-**scale 4:** 4\
-**volume up:** -\
-**volume down:** =\
-**mute:** 0
+**Left rotate:** z\
+**Right rotate:** up\
+**Move left:** left\
+**Move right:** right\
+**Soft down:** down\
+**Hard down:** space\
+**Hold:** c\
+**Pause:** enter\
+**Quit:** escape\
+**Toggle ghost:** g\
+**Toggle colour:** c\
+**Scale 1:** 1\
+**Scale 2:** 2\
+**Scale 3:** 3\
+**Scale 4:** 4\
+**Volume up:** minus\
+**Volume down:** plus\
+**Mute:** 0
