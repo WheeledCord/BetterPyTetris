@@ -3,12 +3,12 @@
 we're making tetris in pygame. pain is ***eternal***
 
 ## Default Controls
-**Left rotate:** z\
-**Right rotate:** up\
-**Move left:** left\
-**Move right:** right\
-**Soft down:** down\
-**Hard down:** space\
+**Left Rotate:** z\
+**Right Rotate:** up\
+**Move Left:** left\
+**Move Right:** right\
+**Soft Down:** down\
+**Hard Down:** space\
 **Hold:** c\
 **Pause:** enter\
 **Quit:** escape\
@@ -18,6 +18,6 @@ we're making tetris in pygame. pain is ***eternal***
 **Scale 2:** 2\
 **Scale 3:** 3\
 **Scale 4:** 4\
-**Volume up:** minus\
-**Volume down:** plus\
+**Volume Up:** minus\
+**Volume Uown:** plus\
 **Mute:** 0
