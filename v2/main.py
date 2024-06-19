@@ -319,10 +319,40 @@ def clearLine(y: int):
         lines = 999
 
 def getCollision():
-    global collided,left_collided,right_collided
+    global ghostShape,ghostCollided,collided,left_collided,right_collided
+
     collided = False
+    ghostCollided = False
     left_collided = False
     right_collided = False
+
+    ghostShape.x = currentShape.x
+    ghostShape.y = currentShape.y-1
+    ghostShape.rotation = currentShape.rotation-1
+    ghostShape.rotate(1)
+
+    while not ghostCollided:
+        ghostShape.y += 1
+        if ghostShape.y == (20-ghostShape.height):
+            ghostCollided = True
+        else:
+            tempMap = deepcopy(tileMap)
+            for piece in ghostShape.pieces:
+                x = ghostShape.x+piece.localx
+                y = ghostShape.y+piece.localy
+                tempMap[y][x] = 'x'
+            x = 0
+            y = 0
+            for row in tempMap:
+                for c in row:
+                    if c == 'x':
+                        if not (tempMap[y+1][x] in 'x '):
+                            ghostCollided = True
+                            break
+                    x += 1
+                y += 1
+                x = 0
+            del tempMap
     
     tempMap = deepcopy(tileMap)
     for piece in currentShape.pieces:
@@ -604,36 +634,6 @@ while replay:
 
 
         if (not paused) and (not AREpaused):
-            # Get ghost
-            ghostCollided = False
-            
-            ghostShape.x = currentShape.x
-            ghostShape.y = currentShape.y-1
-            ghostShape.rotation = currentShape.rotation-1
-            ghostShape.rotate(1)
-            while not ghostCollided:
-                ghostShape.y += 1
-                if ghostShape.y == (20-ghostShape.height):
-                    ghostCollided = True
-                else:
-                    tempMap = deepcopy(tileMap)
-                    for piece in ghostShape.pieces:
-                        x = ghostShape.x+piece.localx
-                        y = ghostShape.y+piece.localy
-                        tempMap[y][x] = 'x'
-                    x = 0
-                    y = 0
-                    for row in tempMap:
-                        for c in row:
-                            if c == 'x':
-                                if not (tempMap[y+1][x] in 'x '):
-                                    ghostCollided = True
-                                    break
-                            x += 1
-                        y += 1
-                        x = 0
-                    del tempMap
-
             # Collision and line clearing
             getCollision()
 
