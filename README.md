@@ -3,39 +3,39 @@
 we're making tetris in pygame. pain is ***eternal***
 
 ## Default Controls
-### left rotate:
+**left rotate:**\
 ["z"],\
-### right rotate:
+**right rotate:**\
 ["up"],\
-### move left:
+**move left:**\
 ["left"],\
-### move right:
+**move right:**\
 ["right"],\
-### soft down:
+**soft down:**\
 ["down"],\
-### hard down:
+**hard down:**\
 ["space"],\
-### hold:
+**hold:**\
 ["c"],\
-### pause:
+**pause:**\
 ["enter"],\
-### quit:
+**quit:**\
 ["escape"],\
-### toggle ghost:
+**toggle ghost:**\
 ["g"],\
-### toggle colour:
+**toggle colour:**\
 ["c"],\
-### scale 1:
+**scale 1:**\
 ["1"],\
-### scale 2:
+**scale 2:**\
 ["2"],\
-### scale 3:
+**scale 3:**\
 ["3"],\
-### scale 4:
+**scale 4:**\
 ["4"],\
-### volume up:
+**volume up:**\
 ["-"],\
-### volume down:
+**volume down:**\
 ["="],\
-### mute:
+**mute:**\
 ["0"]
