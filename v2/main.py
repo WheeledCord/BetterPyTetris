@@ -201,6 +201,10 @@ class Shapes:
                 self.localx = localx
                 self.localy = localy
                 self.center = False
+                self.pos = pygame.Vector2(localx,localy)
+            
+            def rotate(self,pivotPos: pygame.Vector2,angle):
+                return pivotPos + (self.pos - pivotPos).rotate(angle)
                 
         def __init__(self,id: str,piece_sprite: str,hitbox: str) -> None:
             self.id = id
@@ -211,12 +215,17 @@ class Shapes:
             self.base_hitbox = hitbox
             self.piece_sprite = piece_sprite
             self.rotation = 0
-            self.x = 4
-            self.y = 0
             self.makePieces()
             if id[0] != 'G':
                 all_shapes[id] = self
-                
+            self.setPos(4,0)
+
+        def setPos(self,x:int,y:int):
+            self.x = x
+            self.y = y
+            for piece in self.pieces:
+                piece.pos = (x+piece.localx,y+piece.localy)
+
         def makePieces(self):
             self.piecesGroup = pygame.sprite.Group()
             self.pieces = []
@@ -258,6 +267,27 @@ class Shapes:
             str_hitbox = str_hitbox.removesuffix('-')
             self.hitbox = str_hitbox
             self.makePieces()
+        
+        # def rotate(self,angle):
+        #     if self.rotateable:
+        #         if angle in [90,-90,180]:
+        #             pivotPos = self.pieces[0].pos
+        #             newPositions = [piece.rotate(pivotPos,angle) for piece in self.pieces]
+
+        #             # collison checking
+        #             for pos in newPositions:
+        #                 if pos.x < 0 or pos.x >= 10:
+        #                     return # wall kick code here
+        #                 if tileMap[int(pos.y)][int(pos.x)]:
+        #                     return
+        #                 if pos.y < 0 or pos.y >= 20:
+        #                     return
+                        
+        #             for i, piece in enumerate(self.pieces):
+        #                 piece.pos = newPositions[i]
+        #             sounds['rotate'].play()
+        #         else:
+        #             raise ValueError()
             
         def draw(self):
             for piece in self.pieces:
@@ -345,8 +375,7 @@ def getCollision():
     left_collided = False
     right_collided = False
 
-    ghostShape.x = currentShape.x
-    ghostShape.y = currentShape.y-1
+    ghostShape.setPos(currentShape.x,currentShape.y-1)
     ghostShape.rotation = currentShape.rotation-1
     ghostShape.rotate(1)
 
@@ -449,13 +478,11 @@ while replay:
     stats = {'I':0,'J':0,'L':0,'O':0,'S':0,'T':0,'Z':0}
 
     currentShape = Shapes.fromBag()
-    currentShape.x = 4
-    currentShape.y = 0
+    currentShape.setPos(4,0)
     currentShape.rotation = 1
     currentShape.rotate(-1)
     nextShape = Shapes.fromBag()
-    nextShape.x = 4
-    nextShape.y = 0
+    nextShape.setPos(4,0)
     nextShape.rotation = 1
     nextShape.rotate(-1)
     holdShape = None
@@ -534,25 +561,21 @@ while replay:
                         getCollision()
                 if (not paused) and (not AREpaused) and event.key in controls['hold'] and holdCount == 0:
                     if holdShape == None:
-                        currentShape.x = 4
-                        currentShape.y = 0
+                        currentShape.setPos(4,0)
                         currentShape.rotation = 1
                         currentShape.rotate(-1)
                         holdShape = currentShape
-                        nextShape.x = 4
-                        nextShape.y = 0
+                        nextShape.setPos(4,0)
                         nextShape.rotation = 1
                         nextShape.rotate(-1)
                         currentShape = nextShape
                         ghostShape = Shapes.shape('G'+currentShape.id,'ghost',currentShape.hitbox)
                         nextShape = Shapes.fromBag()
                     else:
-                        currentShape.x = 4
-                        currentShape.y = 0
+                        currentShape.setPos(4,0)
                         currentShape.rotation = 1
                         currentShape.rotate(-1)
-                        holdShape.x = 4
-                        holdShape.y = 0
+                        holdShape.setPos(4,0)
                         holdShape.rotation = 1
                         holdShape.rotate(-1)
                         temp = currentShape
@@ -699,8 +722,7 @@ while replay:
                 stats[currentShape.id] += 1
                 if stats[currentShape.id] > 999:
                     stats[currentShape.id] = 999
-                nextShape.x = 4
-                nextShape.y = 0
+                nextShape.setPos(4,0)
                 nextShape.rotation = 1
                 nextShape.rotate(-1)
                 currentShape = nextShape

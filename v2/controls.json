@@ -1,0 +1,1 @@
+{"left rotate": ["q"], "right rotate": ["e"], "move left": ["a"], "move right": ["d"], "soft down": ["s"], "hard down": [" "], "hold": ["f"], "pause": ["return"], "quit": ["escape"], "toggle ghost": ["g"], "toggle colour": ["h"], "scale 1": ["1"], "scale 2": ["2"], "scale 3": ["3"], "scale 4": ["4"], "volume up": ["="], "volume down": ["-"], "mute": ["0"]}
