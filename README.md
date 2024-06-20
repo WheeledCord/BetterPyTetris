@@ -14,7 +14,8 @@ we made tetris in pygame. pain insued.
 **Pause:** enter\
 **Quit:** escape\
 **Toggle ghost:** g\
-**Toggle colour:** x\
+**Toggle colour:** h\
+**Toggle fps display:** j\
 **Scale 1:** 1\
 **Scale 2:** 2\
 **Scale 3:** 3\
@@ -22,7 +23,3 @@ we made tetris in pygame. pain insued.
 **Volume Up:** minus\
 **Volume Uown:** plus\
 **Mute:** 0
-
-## Something to note:
-If you are in power-saver mode, then the game will run at ~25% speed.
-Have fun cheating :)

@@ -21,6 +21,8 @@ def setScale(scale: int):
 
 display = pygame.display.set_mode((display_width, display_height))
 pygame.display.set_caption('PyTetris')
+icon = pygame.image.load('images/gui/icon.png').convert_alpha()
+pygame.display.set_icon(icon)
 setScale(3)
 
 # Load assets
@@ -59,6 +61,7 @@ controls = {
     'quit': [pygame.K_ESCAPE],
     'toggle ghost': [pygame.K_g],
     'toggle colour': [pygame.K_h],
+    'toggle fps': [pygame.K_j],
     'scale 1': [pygame.K_1],
     'scale 2': [pygame.K_2],
     'scale 3': [pygame.K_3],
@@ -103,6 +106,7 @@ running = True
 closed = False
 paused = False
 coloured = True
+show_fps = False
 volume = 1.0
 AREpaused = False
 AREpauseLength = 0
@@ -562,6 +566,8 @@ while replay:
                     setScale(4)
                 if event.key in controls['toggle colour']:
                     coloured = not coloured
+                if event.key in controls['toggle fps']:
+                    show_fps = not show_fps
                 if event.key  in controls['pause']:
                     paused = not paused
                     if paused:
@@ -767,15 +773,16 @@ while replay:
             writeNums((48,88+16*i),stats[shape],3)
             i += 1
 
-        pygame.draw.rect(screen,(0,0,0),pygame.Rect(0,0,19,9))
-        if int(clock.get_fps()) < 20:
-            writeNums((2,0),int(clock.get_fps()),2,(255,0,0))
-        elif int(clock.get_fps()) < 30:
-            writeNums((2,0),int(clock.get_fps()),2,(255,128,0))
-        elif int(clock.get_fps()) < 40:
-            writeNums((2,0),int(clock.get_fps()),2,(255,255,0))
-        else:
-            writeNums((2,0),int(clock.get_fps()),2,(255,255,255))
+        if show_fps:
+            pygame.draw.rect(screen,(0,0,0),pygame.Rect(0,0,19,9))
+            if int(clock.get_fps()) < 20:
+                writeNums((2,0),int(clock.get_fps()),2,(255,0,0))
+            elif int(clock.get_fps()) < 30:
+                writeNums((2,0),int(clock.get_fps()),2,(255,128,0))
+            elif int(clock.get_fps()) < 40:
+                writeNums((2,0),int(clock.get_fps()),2,(255,255,0))
+            else:
+                writeNums((2,0),int(clock.get_fps()),2,(255,255,255))
 
         if paused and running:
             screen.blit(paused_overlay,(0,0))
