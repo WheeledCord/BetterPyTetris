@@ -213,6 +213,7 @@ class Shapes:
             self.rotation = 0
             self.x = 4
             self.y = 0
+            self.centerPieceId = None
             self.makePieces()
             if id[0] != 'G':
                 all_shapes[id] = self
@@ -233,10 +234,20 @@ class Shapes:
                 elif c == '-':
                     y += 1
                     x = 0
+                elif c == 'x':
+                    self.centerPieceId = self.pieces[-1].id
             self.width = len(self.hitbox.split('-')[0])
             self.height = self.hitbox.count('-')+1
             
         def rotate(self,dir):
+            oldCenterPieceLocalX = None
+            oldCenterPieceLocalY = None
+            if self.centerPieceId:
+                centerPiece = None
+                for piece in self.pieces:
+                    if piece.id == self.centerPieceId: centerPiece = piece
+                oldCenterPieceLocalX = centerPiece.localx
+                oldCenterPieceLocalY = centerPiece.localy
             self.rotation = self.rotation + dir
             if self.rotation < 0:
                 self.rotation = 3
@@ -258,6 +269,12 @@ class Shapes:
             str_hitbox = str_hitbox.removesuffix('-')
             self.hitbox = str_hitbox
             self.makePieces()
+            if self.centerPieceId:
+                centerPiece = None
+                for piece in self.pieces:
+                    if piece.id == self.centerPieceId: centerPiece = piece
+                self.x += (oldCenterPieceLocalX - centerPiece.localx)
+                self.y += (oldCenterPieceLocalY - centerPiece.localy)
             
         def draw(self):
             for piece in self.pieces:
@@ -275,13 +292,13 @@ class Shapes:
                 setTileonMap(self.x+piece.localx,self.y+piece.localy,self.id)
             self.makePieces()
             
-    I = shape('I','1','0123')
-    J = shape('J','0','012-  3')
-    L = shape('L','2','012-3  ')
+    I = shape('I','1','01x23')
+    J = shape('J','0','01x2-  3')
+    L = shape('L','2','01x2-3  ')
     O = shape('O','1','01-23')
-    S = shape('S','0',' 01-23 ')
-    T = shape('T','1','012- 3 ')
-    Z = shape('Z','2','01 - 23')
+    S = shape('S','0',' 0x1-23 ')
+    T = shape('T','1','01x2- 3 ')
+    Z = shape('Z','2','01x - 23')
     def __makeBag():
         out = []
         for shape in list(all_shapes.values()):
@@ -514,7 +531,7 @@ while replay:
                     currentShape.rotate(-1)
                     i = True
                     for piece in currentShape.pieces:
-                        if currentShape.x+piece.localx >= 10 or currentShape.y+piece.localy >= 20 or getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) != '':
+                        if currentShape.x+piece.localx <= -1 or currentShape.y+piece.localy <= -1 or currentShape.x+piece.localx >= 10 or currentShape.y+piece.localy >= 20 or getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) != '':
                             currentShape.rotate(1)
                             i = False
                             break
@@ -525,7 +542,7 @@ while replay:
                     currentShape.rotate(1)
                     i = True
                     for piece in currentShape.pieces:
-                        if currentShape.x+piece.localx >= 10 or currentShape.y+piece.localy >= 20 or getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) != '':
+                        if currentShape.x+piece.localx <= -1 or currentShape.y+piece.localy <= -1 or currentShape.x+piece.localx >= 10 or currentShape.y+piece.localy >= 20 or getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) != '':
                             currentShape.rotate(-1)
                             i = False
                             break
