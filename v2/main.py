@@ -203,9 +203,6 @@ class Shapes:
                 
         def __init__(self,id: str,piece_sprite: str,hitbox: str) -> None:
             self.id = id
-            if id[0] != 'G':
-                self.gui_sprite = pygame.image.load(f'images/shapes/{id}.png').convert_alpha()
-
             self.hitbox = hitbox
             self.base_hitbox = hitbox
             self.piece_sprite = piece_sprite
@@ -216,10 +213,26 @@ class Shapes:
             self.makePieces()
             if id[0] != 'G':
                 all_shapes[id] = self
+                self.gui_sprite = pygame.surface.Surface((33,42), pygame.SRCALPHA)
+                shape_sprite = pygame.surface.Surface((8*self.width,8*self.height), pygame.SRCALPHA)
+                for piece in self.pieces:
+                    shape_sprite.blit(piece.sprite.image,(8*piece.localx,8*piece.localy))
+                rect = shape_sprite.get_rect()
+                rect.center = (17,25)
+                self.gui_sprite.blit(shape_sprite,rect)
+                self.stat_sprite = pygame.surface.Surface((6*self.width,6*self.height), pygame.SRCALPHA)
+                for piece in self.pieces:
+                    pieceSprite = pygame.surface.Surface((6,6), pygame.SRCALPHA)
+                    pieceSprite.blit(pygame.transform.scale(piece.sprite.image,(5,5)),(0,0))
+                    pygame.draw.line(pieceSprite,(0,0,0),(5,0),(5,5))
+                    pygame.draw.line(pieceSprite,(0,0,0),(0,5),(5,5))
+                    self.stat_sprite.blit(pieceSprite,(6*piece.localx,6*piece.localy))
+
                 
         def makePieces(self):
             self.piecesGroup = pygame.sprite.Group()
             self.pieces = []
+            maxWidth = 0
             x = 0
             y = 0
             for c in self.hitbox:
@@ -235,7 +248,8 @@ class Shapes:
                     x = 0
                 elif c == 'x':
                     self.centerPieceId = self.pieces[-1].id
-            self.width = len(self.hitbox.split('-')[0])
+                maxWidth = max(maxWidth,x)
+            self.width = maxWidth
             self.height = self.hitbox.count('-')+1
             
         def rotate(self,dir):
@@ -725,6 +739,9 @@ while replay:
             if show_ghost:
                 ghostShape.draw()
             currentShape.draw()
+        layer3 = pygame.surface.Surface((256,224), pygame.SRCALPHA)
+        for id,pos in {'T':(26,85),'J':(26,100),'Z':(26,117),'O':(29,133),'S':(26,149),'L':(26,164),'I':(24,184)}.items():
+            layer3.blit(all_shapes[id].stat_sprite,pos)
         if lvl == 0 or not coloured:
             layer1 = pygame.image.load('images/gui/bg.png').convert_alpha()
             layer1.fill(hsv_to_rgb(300,41,100,0), special_flags=pygame.BLEND_RGB_MULT)
@@ -732,15 +749,13 @@ while replay:
             layer2.fill(hsv_to_rgb(300,20,100,0), special_flags=pygame.BLEND_RGB_MULT)
             screen.blit(layer1,(0,0))
             screen.blit(layer2,(0,0))
-            screen.blit(layer2,(0,0))
-            screen.blit(pygame.image.load('images/gui/bg2.png').convert_alpha(),(0,0))
+            screen.blit(layer3,(0,0))
         else:
             screen.blit(pygame.image.load('images/gui/bg.png').convert_alpha(),(0,0))
             screen.fill(hsv_to_rgb(overflowNum(lvl*12,360),41,100,0), special_flags=pygame.BLEND_RGB_MULT)
             layer2 = pygame.image.load('images/gui/bg1.png').convert_alpha()
             layer2.fill(hsv_to_rgb(overflowNum(lvl*12,360),20,100,0), special_flags=pygame.BLEND_RGB_MULT)
             screen.blit(layer2,(0,0))
-            layer3 = pygame.image.load('images/gui/bg2.png').convert_alpha()
             layer3.fill(hsv_to_rgb(overflowNum(lvl*12,360),20,100,0), special_flags=pygame.BLEND_RGB_MULT)
             screen.blit(layer3,(0,0))
         screen.blit(pygame.image.load('images/gui/staticText.png').convert_alpha(),(0,0))
