@@ -283,8 +283,8 @@ class Shapes:
             
         def stamp(self):
             for piece in self.pieces:
-                x = 96+(8*(self.x+piece.localx))
-                y = 40+(8*(self.y+piece.localy))
+                # x = 96+(8*(self.x+piece.localx))
+                # y = 40+(8*(self.y+piece.localy))
                 s = piece.sprite
                 s.globalx = self.x+piece.localx
                 s.globaly = self.y+piece.localy
@@ -564,23 +564,63 @@ while replay:
                     i = True
                     for piece in currentShape.pieces:
                         if currentShape.x+piece.localx <= -1 or currentShape.y+piece.localy <= -1 or currentShape.x+piece.localx >= 10 or currentShape.y+piece.localy >= 20 or getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) != '':
-                            currentShape.rotate(1)
                             i = False
                             break
+                    if not i:
+                        direc = None
+                        for piece in currentShape.pieces:
+                            if currentShape.x+piece.localx >= 10:
+                                direc = -1
+                                break
+                            elif currentShape.x+piece.localx <= -1:
+                                direc = 1
+                                break
+                        if direc:
+                            i = True
+                            currentShape.x += direc
+                            for piece in currentShape.pieces:
+                                if currentShape.x+piece.localx <= -1 or currentShape.y+piece.localy <= -1 or currentShape.x+piece.localx >= 10 or currentShape.y+piece.localy >= 20 or getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) != '':
+                                    currentShape.rotate(1)
+                                    i = False
+                                    break
+                            if not i:
+                                currentShape.x -= direc
                     if i:
                         sounds['rotate'].play()
                         getCollision()
+                    else:
+                        currentShape.rotate(1)
                 if (not paused) and (not AREpaused) and event.key in controls['right rotate']:
                     currentShape.rotate(1)
                     i = True
                     for piece in currentShape.pieces:
                         if currentShape.x+piece.localx <= -1 or currentShape.y+piece.localy <= -1 or currentShape.x+piece.localx >= 10 or currentShape.y+piece.localy >= 20 or getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) != '':
-                            currentShape.rotate(-1)
                             i = False
                             break
+                    if not i:
+                        direc = None
+                        for piece in currentShape.pieces:
+                            if currentShape.x+piece.localx >= 10:
+                                direc = -1
+                                break
+                            elif currentShape.x+piece.localx <= -1:
+                                direc = 1
+                                break
+                        if direc:
+                            i = True
+                            currentShape.x += direc
+                            for piece in currentShape.pieces:
+                                if currentShape.x+piece.localx <= -1 or currentShape.y+piece.localy <= -1 or currentShape.x+piece.localx >= 10 or currentShape.y+piece.localy >= 20 or getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) != '':
+                                    currentShape.rotate(1)
+                                    i = False
+                                    break
+                            if not i:
+                                currentShape.x -= direc
                     if i:
                         sounds['rotate'].play()
                         getCollision()
+                    else:
+                        currentShape.rotate(-1)
                 if (not paused) and (not AREpaused) and event.key in controls['hold'] and holdCount == 0:
                     if holdShape == None:
                         currentShape.x = 4
