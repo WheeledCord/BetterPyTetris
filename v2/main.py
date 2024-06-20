@@ -142,7 +142,7 @@ clearMap()
     
 def setTileonMap(x,y, value):
     try:
-        tileMap[y][x] = value
+        tileMap[int(y)][int(x)] = value
         return value
     except IndexError:
         return (x,y)
@@ -224,7 +224,7 @@ class Shapes:
             self.x = x
             self.y = y
             for piece in self.pieces:
-                piece.pos = (x+piece.localx,y+piece.localy)
+                piece.pos = pygame.Vector2(x+piece.localx,y+piece.localy)
 
         def makePieces(self):
             self.piecesGroup = pygame.sprite.Group()
@@ -242,76 +242,82 @@ class Shapes:
                 elif c == '-':
                     y += 1
                     x = 0
-            self.width = len(self.hitbox.split('-')[0])
-            self.height = self.hitbox.count('-')+1
+                elif c == 'x':
+                    self.pieces[-1].center = True
             
-        def rotate(self,dir):
-            self.rotation = self.rotation + dir
-            if self.rotation < 0:
-                self.rotation = 3
-            elif self.rotation > 3:
-                self.rotation = 0
-            new_hitbox = []
-            for line in self.base_hitbox.split('-'):
-                new_hitbox.append([])
-                for c in line:
-                    if c.isdigit() or c == ' ':
-                        new_hitbox[-1].append(c)
-            for i in range(self.rotation):
-                new_hitbox = rotateTable(new_hitbox)
-            str_hitbox = ''
-            for line in new_hitbox:
-                for c in line:
-                    str_hitbox += c
-                str_hitbox += '-'
-            str_hitbox = str_hitbox.removesuffix('-')
-            self.hitbox = str_hitbox
-            self.makePieces()
+        # def rotate(self,dir):
+        #     self.rotation = self.rotation + dir
+        #     if self.rotation < 0:
+        #         self.rotation = 3
+        #     elif self.rotation > 3:
+        #         self.rotation = 0
+        #     new_hitbox = []
+        #     for line in self.base_hitbox.split('-'):
+        #         new_hitbox.append([])
+        #         for c in line:
+        #             if c.isdigit() or c == ' ':
+        #                 new_hitbox[-1].append(c)
+        #     for i in range(self.rotation):
+        #         new_hitbox = rotateTable(new_hitbox)
+        #     str_hitbox = ''
+        #     for line in new_hitbox:
+        #         for c in line:
+        #             str_hitbox += c
+        #         str_hitbox += '-'
+        #     str_hitbox = str_hitbox.removesuffix('-')
+        #     self.hitbox = str_hitbox
+        #     self.makePieces()
         
-        # def rotate(self,angle):
-        #     if self.rotateable:
-        #         if angle in [90,-90,180]:
-        #             pivotPos = self.pieces[0].pos
-        #             newPositions = [piece.rotate(pivotPos,angle) for piece in self.pieces]
+        def rotate(self,angle):
+            if angle*90 in [90,-90,180]:
+                pivotPos = None
+                for piece in self.pieces:
+                    if piece.center:
+                        pivotPos = piece.pos
+                        break
+                if pivotPos:
+                    newPositions = [piece.rotate(pivotPos,angle*90) for piece in self.pieces]
 
-        #             # collison checking
-        #             for pos in newPositions:
-        #                 if pos.x < 0 or pos.x >= 10:
-        #                     return # wall kick code here
-        #                 if tileMap[int(pos.y)][int(pos.x)]:
-        #                     return
-        #                 if pos.y < 0 or pos.y >= 20:
-        #                     return
+                    # collison checking
+                    for pos in newPositions:
+                        if pos.x < 0 or pos.x >= 10:
+                            return # wall kick code here
+                        if tileMap[int(pos.y)][int(pos.x)]:
+                            return
+                        if pos.y < 0 or pos.y >= 20:
+                            return
                         
-        #             for i, piece in enumerate(self.pieces):
-        #                 piece.pos = newPositions[i]
-        #             sounds['rotate'].play()
-        #         else:
-        #             raise ValueError()
+                    for i, piece in enumerate(self.pieces):
+                        piece.pos = newPositions[i]
+                        piece.localx = int(pygame.Vector2(self.x,0).distance_to(pygame.Vector2(piece.pos.x,0)))
+                        piece.localy = int(pygame.Vector2(0,self.y).distance_to(pygame.Vector2(0,piece.pos.y)))
+                        if self.x < piece.pos.x: piece.localx = -piece.localx
+                        if self.y < piece.pos.y: piece.localy = -piece.localy
+                    sounds['rotate'].play()
+            else:
+                raise ValueError()
             
         def draw(self):
             for piece in self.pieces:
-                piece.sprite.rect.x = 96+(8*(self.x+piece.localx))
-                piece.sprite.rect.y = 40+(8*(self.y+piece.localy))
+                piece.sprite.rect.x = 96+(8*(piece.pos.x))
+                piece.sprite.rect.y = 40+(8*(piece.pos.y))
             self.piecesGroup.draw(screen)
             
         def stamp(self):
             for piece in self.pieces:
-                x = 96+(8*(self.x+piece.localx))
-                y = 40+(8*(self.y+piece.localy))
-                s = piece.sprite
-                s.globalx = self.x+piece.localx
-                s.globaly = self.y+piece.localy
-                setTileonMap(self.x+piece.localx,self.y+piece.localy,self.id)
+                # x = 96+(8*(piece.pos.x))
+                # y = 40+(8*(piece.pos.y))
+                # s = piece.sprite
+                setTileonMap(piece.pos.x,piece.pos.y,self.id)
             self.makePieces()
             
-    I = shape('I','1','0123')
-    J = shape('J','0','012-  3')
-    L = shape('L','2','012-3  ')
+    I = shape('I','1','01x23')
+    J = shape('J','0','01x2-  3')
+    L = shape('L','2','01x2-3  ')
     O = shape('O','1','01-23')
-    S = shape('S','0',' 01-23 ')
-    T = shape('T','1','012- 3 ')
-    Z = shape('Z','2','01 - 23')
+    S = shape('S','0',' 01-23x ')
+    T = shape('T','1','012- 3x ')
+    Z = shape('Z','2','01 - 2x3')
     def __makeBag():
         out = []
         for shape in list(all_shapes.values()):
@@ -347,7 +353,7 @@ def clearLine(y: int):
     tileMap.insert(0,empty)
     temp = []
     for pos,piece in stamps:
-        if piece.globaly != y:
+        if piece.pos.y != y:
             temp.append((pos,piece))
         else:
             flash_stamps.append((pos,piece))
@@ -379,57 +385,20 @@ def getCollision():
     ghostShape.rotation = currentShape.rotation-1
     ghostShape.rotate(1)
 
-    while not ghostCollided:
-        ghostShape.y += 1
-        if ghostShape.y == (20-ghostShape.height):
+    for piece in ghostShape.pieces:
+        if piece.pos.y == 19 or tileMap[int(piece.pos.y+1)][int(piece.pos.x)] != ' ':
             ghostCollided = True
-        else:
-            tempMap = deepcopy(tileMap)
-            for piece in ghostShape.pieces:
-                x = ghostShape.x+piece.localx
-                y = ghostShape.y+piece.localy
-                tempMap[y][x] = 'x'
-            x = 0
-            y = 0
-            for row in tempMap:
-                for c in row:
-                    if c == 'x':
-                        if not (tempMap[y+1][x] in 'x '):
-                            ghostCollided = True
-                            break
-                    x += 1
-                y += 1
-                x = 0
-            del tempMap
+            break
     
-    tempMap = deepcopy(tileMap)
     for piece in currentShape.pieces:
-        x = currentShape.x+piece.localx
-        y = currentShape.y+piece.localy
-        tempMap[y][x] = 'x'
-    x = 0
-    y = 0
-    for row in tempMap:
-        for c in row:
-            if c == 'x':
-                if currentShape.y == (20-currentShape.height):
-                        collided = True
-                elif not (tempMap[y+1][x] in 'x '):
-                    collided = True
-                
-                if currentShape.x <= 0:
-                    left_collided = True
-                elif not (tempMap[y][x-1] in 'x '):
-                    left_collided = True
-                
-                if currentShape.x >= 10-currentShape.width:
-                    right_collided = True
-                elif not (tempMap[y][x+1] in 'x '):
-                    right_collided = True
-            x += 1
-        y += 1
-        x = 0
-    del tempMap
+        if piece.pos.y == 19 or tileMap[int(piece.pos.y+1)][int(piece.pos.x)] != ' ':
+            collided = True
+        if piece.pos.x >= 9:
+            right_collided = True
+        if piece.pos.x <= 0:
+            left_collided = True
+        if collided and right_collided and left_collided:
+            break
 
 def hsv_to_rgb( h:int, s:int, v:int, a:int=255 ) -> tuple:
     out = pygame.Color(0)
@@ -539,26 +508,10 @@ while replay:
                     show_ghost = not show_ghost
                 if (not paused) and (not AREpaused) and event.key in controls['left rotate']:
                     currentShape.rotate(-1)
-                    i = True
-                    for piece in currentShape.pieces:
-                        if currentShape.x+piece.localx >= 10 or currentShape.y+piece.localy >= 20 or getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) != '':
-                            currentShape.rotate(1)
-                            i = False
-                            break
-                    if i:
-                        sounds['rotate'].play()
-                        getCollision()
+                    getCollision()
                 if (not paused) and (not AREpaused) and event.key in controls['right rotate']:
                     currentShape.rotate(1)
-                    i = True
-                    for piece in currentShape.pieces:
-                        if currentShape.x+piece.localx >= 10 or currentShape.y+piece.localy >= 20 or getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) != '':
-                            currentShape.rotate(-1)
-                            i = False
-                            break
-                    if i:
-                        sounds['rotate'].play()
-                        getCollision()
+                    getCollision()
                 if (not paused) and (not AREpaused) and event.key in controls['hold'] and holdCount == 0:
                     if holdShape == None:
                         currentShape.setPos(4,0)
@@ -610,7 +563,7 @@ while replay:
                 getCollision()
             if holding_down and not (getInp('soft down') or getInp('hard down')):
                 holding_down = False
-            if ((not holding_down) and getInp('soft down')) and currentShape.y + currentShape.height < 20 and not collided and (last_soft_input == 0 or speed == 1):
+            if ((not holding_down) and getInp('soft down')) and (not collided) and not collided and (last_soft_input == 0 or speed == 1):
                 currentShape.y += 1
                 sounds['soft_drop'].play()
                 score += 1
@@ -637,7 +590,6 @@ while replay:
                         sprite = pygame.sprite.Sprite()
                         sprite.image = pygame.image.load(f'images/pieces/{all_shapes[tile].piece_sprite}.png').convert_alpha()
                         sprite.rect = sprite.image.get_rect()
-                        sprite.globaly = y
                         stamps.append(((96+8*x,40+8*y),sprite))
                     x += 1
                 y += 1
@@ -748,12 +700,12 @@ while replay:
                 temp = []
                 topBadY = 20
                 for stamp in flash_stamps:
-                    y = stamp[1].globaly
+                    y = stamp[1].pos.y
                     if y < topBadY:
                         topBadY = y
                 for pos,piece in stamps:
-                    if piece.globaly < topBadY:
-                        piece.globaly += linesCleared
+                    if piece.pos.y < topBadY:
+                        piece.pos.y += linesCleared
                         temp.append(((pos[0],pos[1]+8*linesCleared),piece))
                     else:
                         temp.append((pos,piece))
