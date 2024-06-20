@@ -95,9 +95,6 @@ else:
 frameRate = 60
 show_ghost = True
 
-last_fall = 0
-last_input = 0
-last_soft_input = 0
 holding_input = False
 holding_down = False
 left_collided = False
@@ -175,12 +172,14 @@ def flashStamps():
             pygame.draw.rect(screen, 'white', (pos[0], pos[1], 7, 7))
 
 # Draw Text
-def writeNums(pos: tuple, num: int, length: int):
+def writeNums(pos: tuple, num: int, length: int,color=(255,255,255)):
     full_num = str(num)
     full_num = (length-len(full_num))*'0'+full_num
     i = 0
     for c in full_num:
-        screen.blit(pygame.image.load(f'images/text/{c}.png').convert_alpha(), (pos[0]+8*i,pos[1]))
+        text = pygame.image.load(f'images/text/{c}.png').convert_alpha()
+        text.fill(color, special_flags=pygame.BLEND_RGB_MULT)
+        screen.blit(text, (pos[0]+8*i,pos[1]))
         i += 1
 
 
@@ -438,18 +437,44 @@ def overflowNum(value, maxValue):
 
 replay = True
 
+# - Timers - #
+class Timer:
+    def __init__(self, duration) -> None:
+        self.duration = 1000*duration
+        self.finished = False
 
+        self.startTime = 0
+        self.active = False
+
+    def activate(self):
+        self.active = True
+        self.finished = False
+        self.startTime = pygame.time.get_ticks()
+
+    def deactivate(self):
+        self.active = False
+        self.finished = True
+        self.startTime = 0
+
+    def update(self):
+        currentTime = pygame.time.get_ticks()
+        if self.active and currentTime - self.startTime >= self.duration:
+            self.deactivate()
+
+timers = {
+    'fall': Timer(1/frameRate*speed),
+    'move': Timer(1/frameRate*16),
+    'soft down': Timer(1/frameRate*2)
+}
+# - Timers - #
 
 # Main game loop
 while replay:
     clearMap()
     stamps = []
     flash_stamps = []
-    last_fall = 0
-    last_input = 0
     left_collided = False
     right_collided = False
-    last_soft_input = 0
     holding_input = False
     holding_down = False
     running = True
@@ -480,22 +505,19 @@ while replay:
     ghostShape = Shapes.shape('G'+currentShape.id,'ghost',currentShape.hitbox)
 
     pygame.mixer.music.play(-1)
+
+    timers['fall'].activate()
+    timers['move'].deactivate()
+    timers['soft down'].deactivate()
     while running:
         for id,sound in sounds.items():
             sound.set_volume(volume)
         pygame.mixer.music.set_volume(volume)
         clock.tick(frameRate)
-        if int(clock.get_fps()) == 0:
-            pass
-        elif int(clock.get_fps()) < 20:
-            print("SUPER LOW FRAME RATE\SUPER LOW FRAME RATE\SUPER LOW FRAME RATE\SUPER LOW FRAME RATE\SUPER LOW FRAME RATE")
-            print(int(clock.get_fps()))
-        elif int(clock.get_fps()) < 30:
-            print("REALLY LOW FRAME RATE\nREALLY LOW FRAME RATE\nREALLY LOW FRAME RATE\nREALLY LOW FRAME RATE\nREALLY LOW FRAME RATE")
-            print(int(clock.get_fps()))
-        elif int(clock.get_fps()) < 40:
-            print("KINDA LOW FRAME RATE\KINDA LOW FRAME RATE\KINDA LOW FRAME RATE\KINDA LOW FRAME RATE\KINDA LOW FRAME RATE")
-            print(int(clock.get_fps()))
+        if not paused:
+            for timer in timers.values():
+                timer.update()
+        timers['fall'].duration = 1/frameRate*speed
         for event in pygame.event.get():
             # Detect window closed
             if event.type == pygame.QUIT:
@@ -594,34 +616,37 @@ while replay:
             # Input
             if (not getInp('move left')) and (not getInp('move right')):
                 holding_input = False
-                last_input = 0
-            if getInp('move left') and (not getInp('move right')) and (not left_collided) and last_input == 0:
+                timers['move'].deactivate()
+            if getInp('move left') and (not getInp('move right')) and (not left_collided) and timers['move'].finished():
                 currentShape.x -= 1
                 sounds['move'].play()
                 if holding_input == False:
-                    last_input = 16
+                    timers['move'].duration = 1/frameRate*16
                 else:
-                    last_input = 6
+                    timers['move'].duration = 1/frameRate*6
+                timers['move'].activate()
                 holding_input = True
                 getCollision()
-            if getInp('move right') and (not getInp('move left')) and (not right_collided) and last_input == 0:
+            if getInp('move right') and (not getInp('move left')) and (not right_collided) and timers['move'].finished():
                 currentShape.x += 1
                 sounds['move'].play()
                 if holding_input == False:
-                    last_input = 16
+                    timers['move'].duration = 1/frameRate*16
                 else:
-                    last_input = 6
+                    timers['move'].duration = 1/frameRate*6
+                timers['move'].activate()
                 holding_input = True
                 getCollision()
             if holding_down and not (getInp('soft down') or getInp('hard down')):
                 holding_down = False
-            if ((not holding_down) and getInp('soft down')) and currentShape.y + currentShape.height < 20 and not collided and (last_soft_input == 0 or speed == 1):
+            if ((not holding_down) and getInp('soft down')) and currentShape.y + currentShape.height < 20 and not collided and (timers['soft down'].finished or speed == 1):
                 currentShape.y += 1
                 sounds['soft_drop'].play()
                 score += 1
                 if score > 999999:
                     score = 999999
-                last_soft_input = 2
+                timers['soft down'].duration = 1/frameRate*2
+                timers['soft down'].activate()
                 getCollision()
             if ((not holding_down) and getInp('hard down')) and currentShape.y < ghostShape.y and not collided:
                 score += 2*(ghostShape.y - currentShape.y)
@@ -687,10 +712,22 @@ while replay:
         for shape in 'IJLOSTZ':
             writeNums((48,88+16*i),stats[shape],3)
             i += 1
+
+        pygame.draw.rect(screen,(0,0,0),pygame.Rect(0,0,19,9))
+        if int(clock.get_fps()) < 20:
+            writeNums((2,0),int(clock.get_fps()),2,(255,0,0))
+        elif int(clock.get_fps()) < 30:
+            writeNums((2,0),int(clock.get_fps()),2,(255,128,0))
+        elif int(clock.get_fps()) < 40:
+            writeNums((2,0),int(clock.get_fps()),2,(255,255,0))
+        else:
+            writeNums((2,0),int(clock.get_fps()),2,(255,255,255))
+
         if paused and running:
             screen.blit(paused_overlay,(0,0))
         if not running:
             screen.blit(death_overlay,(0,0))
+
         scaled = pygame.transform.scale(screen, display.get_size())
         display.blit(scaled, (0, 0))
         pygame.display.flip()
@@ -719,7 +756,7 @@ while replay:
             if score > 999999:
                 score = 999999
 
-            if collided and ((last_fall >= speed) or getInp('hard down')):
+            if collided and timers['fall'].finished or getInp('hard down')):
                 currentShape.stamp()
                 sounds['place'].play()
                 if not currentShape.id in stats.keys():
@@ -737,16 +774,10 @@ while replay:
                 holdCount = 0
                 if getInp('soft down') or getInp('hard down'):
                     holding_down = True
-            elif last_fall >= speed and not ((not holding_down) and (getInp('soft down') or getInp('hard down'))):
+            elif timers['fall'].finished and not ((not holding_down) and (getInp('soft down') or getInp('hard down'))):
                 currentShape.y += 1
                 sounds['fall'].play()
-                last_fall = 0
-            else:
-                last_fall += 1
-            if last_input > 0:
-                last_input -= 1
-            if last_soft_input > 0:
-                last_soft_input -= 1
+                timers['fall'].activate()
         if AREpaused and AREpauseLength > 0:
             AREpauseLength -= 1
             if AREpauseLength == 0:
