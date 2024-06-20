@@ -58,6 +58,7 @@ controls = {
     'hard down': [pygame.K_SPACE],
     'hold': [pygame.K_c],
     'pause': [pygame.K_RETURN],
+    'reset': [pygame.K_r],
     'quit': [pygame.K_ESCAPE],
     'toggle ghost': [pygame.K_g],
     'toggle colour': [pygame.K_h],
@@ -68,7 +69,7 @@ controls = {
     'scale 4': [pygame.K_4],
     'volume up': [61],
     'volume down': [45],
-    'mute': [pygame.K_0]
+    'mute': [pygame.K_0],
 }
 
 if osPath.isfile('controls.json'):
@@ -105,6 +106,7 @@ right_collided = False
 running = True
 closed = False
 paused = False
+reset = False
 coloured = True
 show_fps = False
 volume = 1.0
@@ -417,20 +419,26 @@ def getCollision():
     for row in tempMap:
         for c in row:
             if c == 'x':
-                if currentShape.y == (20-currentShape.height):
+                try:
+                    if currentShape.y == (20-currentShape.height):
+                            collided = True
+                    elif not (tempMap[y+1][x] in 'x '):
                         collided = True
-                elif not (tempMap[y+1][x] in 'x '):
-                    collided = True
+                except: collided = True
                 
-                if currentShape.x <= 0:
-                    left_collided = True
-                elif not (tempMap[y][x-1] in 'x '):
-                    left_collided = True
-                
-                if currentShape.x >= 10-currentShape.width:
-                    right_collided = True
-                elif not (tempMap[y][x+1] in 'x '):
-                    right_collided = True
+                try:
+                    if currentShape.x <= 0:
+                        left_collided = True
+                    elif not (tempMap[y][x-1] in 'x '):
+                        left_collided = True
+                except: left_collided = True
+
+                try:
+                    if currentShape.x >= 10-currentShape.width:
+                        right_collided = True
+                    elif not (tempMap[y][x+1] in 'x '):
+                        right_collided = True
+                except: right_collided = True
             x += 1
         y += 1
         x = 0
@@ -496,6 +504,7 @@ while replay:
     holding_input = False
     holding_down = False
     running = True
+    reset = False
     closed = False
     paused = False
     AREpaused = False
@@ -527,7 +536,7 @@ while replay:
     timers['fall'].activate()
     timers['move'].deactivate()
     timers['soft down'].deactivate()
-    while running:
+    while running and (not reset):
         for id,sound in sounds.items():
             sound.set_volume(volume)
         pygame.mixer.music.set_volume(volume)
@@ -574,6 +583,8 @@ while replay:
                         pygame.mixer.music.pause()
                     else:
                         pygame.mixer.music.unpause()
+                if event.key in controls['reset']:
+                    reset = True
                 if event.key in controls['quit']:
                     closed = True
                     replay = False
@@ -610,6 +621,7 @@ while replay:
                         getCollision()
                     else:
                         currentShape.rotate(1)
+                        getCollision()
                 if (not paused) and (not AREpaused) and event.key in controls['right rotate']:
                     currentShape.rotate(1)
                     i = True
@@ -641,6 +653,7 @@ while replay:
                         getCollision()
                     else:
                         currentShape.rotate(-1)
+                        getCollision()
                 if (not paused) and (not AREpaused) and event.key in controls['hold'] and holdCount == 0:
                     if holdShape == None:
                         currentShape.x = 4
@@ -678,6 +691,7 @@ while replay:
                 timers['move'].deactivate()
             if getInp('move left') and (not getInp('move right')) and (not left_collided) and timers['move'].finished:
                 currentShape.x -= 1
+                getCollision()
                 sounds['move'].play()
                 if holding_input == False:
                     timers['move'].duration = 16
@@ -685,9 +699,9 @@ while replay:
                     timers['move'].duration = 6
                 timers['move'].activate()
                 holding_input = True
-                getCollision()
             if getInp('move right') and (not getInp('move left')) and (not right_collided) and timers['move'].finished:
                 currentShape.x += 1
+                getCollision()
                 sounds['move'].play()
                 if holding_input == False:
                     timers['move'].duration = 16
@@ -695,23 +709,24 @@ while replay:
                     timers['move'].duration = 6
                 timers['move'].activate()
                 holding_input = True
-                getCollision()
             if holding_down and not (getInp('soft down') or getInp('hard down')):
                 holding_down = False
             if ((not holding_down) and getInp('soft down')) and currentShape.y + currentShape.height < 20 and not collided and (timers['soft down'].finished or speed == 1):
                 currentShape.y += 1
+                getCollision()
                 sounds['soft_drop'].play()
                 score += 1
                 if score > 999999:
                     score = 999999
                 timers['soft down'].duration = 2
                 timers['soft down'].activate()
-                getCollision()
+                timers['fall'].activate()
             if ((not holding_down) and getInp('hard down')) and currentShape.y < ghostShape.y and not collided:
                 score += 2*(ghostShape.y - currentShape.y)
                 currentShape.y = ghostShape.y
+                getCollision()
                 if score > 999999:
-                    score = 999999
+                    score = 999999 
 
         # Rendering
         screen = pygame.image.load('images/gui/bg.png').convert_alpha()
@@ -866,7 +881,7 @@ while replay:
         pygame.mixer.music.stop()
         sounds['death'].play()
         game_over = True
-        while game_over and not closed:
+        while (game_over and not closed) and not reset:
             for event in pygame.event.get():
                 # Detect window closed
                 if event.type == pygame.QUIT:
