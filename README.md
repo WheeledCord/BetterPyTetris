@@ -13,13 +13,13 @@ we made tetris in pygame. pain insued.
 **Hold:** c\
 **Pause:** enter\
 **Quit:** escape\
-**Toggle ghost:** g\
-**Toggle colour:** h\
-**Toggle fps display:** j\
+**Toggle Ghost:** g\
+**Toggle Colour Change:** h\
+**Toggle FPS Display:** j\
 **Scale 1:** 1\
 **Scale 2:** 2\
 **Scale 3:** 3\
 **Scale 4:** 4\
 **Volume Up:** minus\
-**Volume Uown:** plus\
+**Volume Down:** plus\
 **Mute:** 0
