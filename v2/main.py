@@ -189,7 +189,7 @@ def writeNums(pos: tuple, num: int, length: int):
 # Shapes and pieces
 all_shapes = {}
 class Shapes:
-    class shape:
+    class Shape:
         # The individual blocks that make up a shape
         class __piece:
             def __init__(self,image,id,localx,localy,pieceid) -> None:
@@ -210,21 +210,25 @@ class Shapes:
             self.id = id
             if id[0] != 'G':
                 self.gui_sprite = pygame.image.load(f'images/shapes/{id}.png').convert_alpha()
-
             self.hitbox = hitbox
             self.base_hitbox = hitbox
             self.piece_sprite = piece_sprite
             self.rotation = 0
             self.makePieces()
+            self.x,self.y = (0,0)
             if id[0] != 'G':
+                self.setPos(4,0)
                 all_shapes[id] = self
-            self.setPos(4,0)
+            else:
+                global currentShape
+                self.setPos(currentShape.x,currentShape.y)
 
         def setPos(self,x:int,y:int):
+            differences = (x - self.x, y - self.y)
             self.x = x
             self.y = y
             for piece in self.pieces:
-                piece.pos = pygame.Vector2(x+piece.localx,y+piece.localy)
+                piece.pos = pygame.Vector2(piece.pos.x+differences[0],piece.pos.y+differences[1])
 
         def makePieces(self):
             self.piecesGroup = pygame.sprite.Group()
@@ -245,57 +249,28 @@ class Shapes:
                 elif c == 'x':
                     self.pieces[-1].center = True
             
-        # def rotate(self,dir):
-        #     self.rotation = self.rotation + dir
-        #     if self.rotation < 0:
-        #         self.rotation = 3
-        #     elif self.rotation > 3:
-        #         self.rotation = 0
-        #     new_hitbox = []
-        #     for line in self.base_hitbox.split('-'):
-        #         new_hitbox.append([])
-        #         for c in line:
-        #             if c.isdigit() or c == ' ':
-        #                 new_hitbox[-1].append(c)
-        #     for i in range(self.rotation):
-        #         new_hitbox = rotateTable(new_hitbox)
-        #     str_hitbox = ''
-        #     for line in new_hitbox:
-        #         for c in line:
-        #             str_hitbox += c
-        #         str_hitbox += '-'
-        #     str_hitbox = str_hitbox.removesuffix('-')
-        #     self.hitbox = str_hitbox
-        #     self.makePieces()
-        
-        def rotate(self,angle):
-            if angle*90 in [90,-90,180]:
-                pivotPos = None
-                for piece in self.pieces:
-                    if piece.center:
-                        pivotPos = piece.pos
-                        break
-                if pivotPos:
-                    newPositions = [piece.rotate(pivotPos,angle*90) for piece in self.pieces]
-
-                    # collison checking
-                    for pos in newPositions:
-                        if pos.x < 0 or pos.x >= 10:
-                            return # wall kick code here
-                        if tileMap[int(pos.y)][int(pos.x)]:
-                            return
-                        if pos.y < 0 or pos.y >= 20:
-                            return
-                        
-                    for i, piece in enumerate(self.pieces):
-                        piece.pos = newPositions[i]
-                        piece.localx = int(pygame.Vector2(self.x,0).distance_to(pygame.Vector2(piece.pos.x,0)))
-                        piece.localy = int(pygame.Vector2(0,self.y).distance_to(pygame.Vector2(0,piece.pos.y)))
-                        if self.x < piece.pos.x: piece.localx = -piece.localx
-                        if self.y < piece.pos.y: piece.localy = -piece.localy
-                    sounds['rotate'].play()
-            else:
-                raise ValueError()
+        def rotate(self,dir):
+            self.rotation = self.rotation + dir
+            if self.rotation < 0:
+                self.rotation = 3
+            elif self.rotation > 3:
+                self.rotation = 0
+            new_hitbox = []
+            for line in self.base_hitbox.split('-'):
+                new_hitbox.append([])
+                for c in line:
+                    if c.isdigit() or c == ' ':
+                        new_hitbox[-1].append(c)
+            for i in range(self.rotation):
+                new_hitbox = rotateTable(new_hitbox)
+            str_hitbox = ''
+            for line in new_hitbox:
+                for c in line:
+                    str_hitbox += c
+                str_hitbox += '-'
+            str_hitbox = str_hitbox.removesuffix('-')
+            self.hitbox = str_hitbox
+            self.makePieces()
             
         def draw(self):
             for piece in self.pieces:
@@ -311,23 +286,32 @@ class Shapes:
                 setTileonMap(piece.pos.x,piece.pos.y,self.id)
             self.makePieces()
             
-    I = shape('I','1','01x23')
-    J = shape('J','0','01x2-  3')
-    L = shape('L','2','01x2-3  ')
-    O = shape('O','1','01-23')
-    S = shape('S','0',' 01-23x ')
-    T = shape('T','1','012- 3x ')
-    Z = shape('Z','2','01 - 2x3')
+    I = Shape('I','1','01x23')
+    J = Shape('J','0','01x2-  3')
+    L = Shape('L','2','01x2-3  ')
+    O = Shape('O','1','01-23')
+    S = Shape('S','0',' 01-23x ')
+    T = Shape('T','1','012- 3x ')
+    Z = Shape('Z','2','01 - 2x3')
+    # I = Shape('I',1,((1,0),(0,0),(2,0),(3,0)))
+    # J = Shape('J',0,((1,1),(0,0),(0,1),(2,1)))
+    # L = Shape('L',2,((1,1),(2,0),(0,1),(2,1)))
+    # O = Shape('O',1,((0,0),(1,0),(0,1),(1,1)),False)
+    # S = Shape('S',1,((1,1),(1,0),(2,0),(0,1)))
+    # T = Shape('T',1,((1,1),(1,0),(0,1),(2,1)))
+    # Z = Shape('Z',1,((1,1),(0,0),(1,0),(2,1)))
     def __makeBag():
         out = []
         for shape in list(all_shapes.values()):
             out.insert(randint(0,len(out)),shape)
         return out
     bag = __makeBag()
-    def fromBag() -> shape:
+    def fromBag() -> Shape:
         if len(Shapes.bag) == 0:
             Shapes.bag = Shapes.__makeBag()
-        return Shapes.bag.pop(0)
+        shape = Shapes.bag.pop(0)
+        shape = Shapes.Shape(shape.id,shape.piece_sprite,shape.hitbox)
+        return shape
 
 
 
@@ -380,25 +364,26 @@ def getCollision():
     ghostCollided = False
     left_collided = False
     right_collided = False
-
-    ghostShape.setPos(currentShape.x,currentShape.y-1)
-    ghostShape.rotation = currentShape.rotation-1
-    ghostShape.rotate(1)
-
-    for piece in ghostShape.pieces:
-        if piece.pos.y == 19 or tileMap[int(piece.pos.y+1)][int(piece.pos.x)] != ' ':
-            ghostCollided = True
-            break
     
     for piece in currentShape.pieces:
-        if piece.pos.y == 19 or tileMap[int(piece.pos.y+1)][int(piece.pos.x)] != ' ':
+        if piece.pos.y >= 19 or tileMap[int(piece.pos.y+1)][int(piece.pos.x)] == ' ':
             collided = True
+            break
         if piece.pos.x >= 9:
             right_collided = True
         if piece.pos.x <= 0:
             left_collided = True
         if collided and right_collided and left_collided:
             break
+    
+    ghostShape.setPos(currentShape.x,currentShape.y)
+    while (not collided) and (not ghostCollided):
+        ghostShape.setPos(currentShape.x,ghostShape.y+1)
+
+        for piece in ghostShape.pieces:
+            if piece.pos.y >= 19 or tileMap[int(piece.pos.y+1)][int(piece.pos.x)] == ' ':
+                ghostCollided = True
+                break
 
 def hsv_to_rgb( h:int, s:int, v:int, a:int=255 ) -> tuple:
     out = pygame.Color(0)
@@ -447,16 +432,10 @@ while replay:
     stats = {'I':0,'J':0,'L':0,'O':0,'S':0,'T':0,'Z':0}
 
     currentShape = Shapes.fromBag()
-    currentShape.setPos(4,0)
-    currentShape.rotation = 1
-    currentShape.rotate(-1)
     nextShape = Shapes.fromBag()
-    nextShape.setPos(4,0)
-    nextShape.rotation = 1
-    nextShape.rotate(-1)
     holdShape = None
     holdCount = 0
-    ghostShape = Shapes.shape('G'+currentShape.id,'ghost',currentShape.hitbox)
+    ghostShape = Shapes.Shape('G'+currentShape.id,'ghost',currentShape.hitbox)
 
     pygame.mixer.music.play(-1)
     while running:
@@ -507,35 +486,31 @@ while replay:
                 if event.key in controls['toggle ghost']:
                     show_ghost = not show_ghost
                 if (not paused) and (not AREpaused) and event.key in controls['left rotate']:
-                    currentShape.rotate(-1)
+                    if currentShape.rotate(-1):
+                        sounds['rotate'].play()
+                        ghostShape.rotate(-1)
                     getCollision()
                 if (not paused) and (not AREpaused) and event.key in controls['right rotate']:
-                    currentShape.rotate(1)
+                    if currentShape.rotate(1):
+                        sounds['rotate'].play()
+                        ghostShape.rotate(1)
                     getCollision()
                 if (not paused) and (not AREpaused) and event.key in controls['hold'] and holdCount == 0:
                     if holdShape == None:
-                        currentShape.setPos(4,0)
-                        currentShape.rotation = 1
-                        currentShape.rotate(-1)
                         holdShape = currentShape
-                        nextShape.setPos(4,0)
-                        nextShape.rotation = 1
-                        nextShape.rotate(-1)
+                        holdShape = Shapes.Shape(holdShape.id,holdShape.piece_sprite,holdShape.hitbox)
                         currentShape = nextShape
-                        ghostShape = Shapes.shape('G'+currentShape.id,'ghost',currentShape.hitbox)
+                        currentShape = Shapes.Shape(currentShape.id,currentShape.piece_sprite,currentShape.hitbox)
+                        ghostShape = Shapes.Shape('G'+currentShape.id,'ghost',currentShape.hitbox)
                         nextShape = Shapes.fromBag()
                     else:
-                        currentShape.setPos(4,0)
-                        currentShape.rotation = 1
-                        currentShape.rotate(-1)
-                        holdShape.setPos(4,0)
-                        holdShape.rotation = 1
-                        holdShape.rotate(-1)
+                        currentShape = Shapes.Shape(currentShape.id,currentShape.piece_sprite,currentShape.hitbox)
+                        holdShape = Shapes.Shape(holdShape.id,holdShape.piece_sprite,holdShape.hitbox)
                         temp = currentShape
                         currentShape = holdShape
                         holdShape = temp
                         del temp
-                        ghostShape = Shapes.shape('G'+currentShape.id,'ghost',currentShape.hitbox)
+                        ghostShape = Shapes.Shape('G'+currentShape.id,'ghost',currentShape.hitbox)
                     holdCount += 1
                     getCollision()
         if (not paused) and (not AREpaused):
@@ -544,7 +519,7 @@ while replay:
                 holding_input = False
                 last_input = 0
             if getInp('move left') and (not getInp('move right')) and (not left_collided) and last_input == 0:
-                currentShape.x -= 1
+                currentShape.setPos(currentShape.x-1,currentShape.y)
                 sounds['move'].play()
                 if holding_input == False:
                     last_input = 16
@@ -553,7 +528,7 @@ while replay:
                 holding_input = True
                 getCollision()
             if getInp('move right') and (not getInp('move left')) and (not right_collided) and last_input == 0:
-                currentShape.x += 1
+                currentShape.setPos(currentShape.x+1,currentShape.y)
                 sounds['move'].play()
                 if holding_input == False:
                     last_input = 16
@@ -564,16 +539,16 @@ while replay:
             if holding_down and not (getInp('soft down') or getInp('hard down')):
                 holding_down = False
             if ((not holding_down) and getInp('soft down')) and (not collided) and not collided and (last_soft_input == 0 or speed == 1):
-                currentShape.y += 1
+                currentShape.setPos(currentShape.x,currentShape.y+1)
                 sounds['soft_drop'].play()
                 score += 1
                 if score > 999999:
                     score = 999999
                 last_soft_input = 2
                 getCollision()
-            if ((not holding_down) and getInp('hard down')) and currentShape.y < ghostShape.y and not collided:
+            if ((not holding_down) and getInp('hard down')) and not collided:
                 score += 2*(ghostShape.y - currentShape.y)
-                currentShape.y = ghostShape.y
+                currentShape.setPos(currentShape.x,ghostShape.y)
                 if score > 999999:
                     score = 999999
 
@@ -631,7 +606,7 @@ while replay:
         writeNums((192,32),score,6)
         writeNums((208,72),lvl,2)
         i = 0
-        for shape in 'TJZOSLI':
+        for shape in 'IJLOSTZ':
             writeNums((48,88+16*i),stats[shape],3)
             i += 1
         if paused and running:
@@ -644,7 +619,6 @@ while replay:
 
 
         if (not paused) and (not AREpaused):
-            # Collision and line clearing
             getCollision()
 
             i = 0
@@ -674,17 +648,15 @@ while replay:
                 stats[currentShape.id] += 1
                 if stats[currentShape.id] > 999:
                     stats[currentShape.id] = 999
-                nextShape.setPos(4,0)
-                nextShape.rotation = 1
-                nextShape.rotate(-1)
                 currentShape = nextShape
-                ghostShape = Shapes.shape('G'+currentShape.id,'ghost',currentShape.hitbox)
+                currentShape = Shapes.Shape(currentShape.id,currentShape.piece_sprite,currentShape.hitbox)
+                ghostShape = Shapes.Shape('G'+currentShape.id,'ghost',currentShape.hitbox)
                 nextShape = Shapes.fromBag()
                 holdCount = 0
                 if getInp('soft down') or getInp('hard down'):
                     holding_down = True
             elif last_fall >= speed and not ((not holding_down) and (getInp('soft down') or getInp('hard down'))):
-                currentShape.y += 1
+                currentShape.setPos(currentShape.x,currentShape.y+1)
                 sounds['fall'].play()
                 last_fall = 0
             else:
