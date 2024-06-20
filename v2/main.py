@@ -485,6 +485,17 @@ while replay:
             sound.set_volume(volume)
         pygame.mixer.music.set_volume(volume)
         clock.tick(frameRate)
+        if int(clock.get_fps()) == 0:
+            pass
+        elif int(clock.get_fps()) < 20:
+            print("SUPER LOW FRAME RATE\SUPER LOW FRAME RATE\SUPER LOW FRAME RATE\SUPER LOW FRAME RATE\SUPER LOW FRAME RATE")
+            print(int(clock.get_fps()))
+        elif int(clock.get_fps()) < 30:
+            print("REALLY LOW FRAME RATE\nREALLY LOW FRAME RATE\nREALLY LOW FRAME RATE\nREALLY LOW FRAME RATE\nREALLY LOW FRAME RATE")
+            print(int(clock.get_fps()))
+        elif int(clock.get_fps()) < 40:
+            print("KINDA LOW FRAME RATE\KINDA LOW FRAME RATE\KINDA LOW FRAME RATE\KINDA LOW FRAME RATE\KINDA LOW FRAME RATE")
+            print(int(clock.get_fps()))
         for event in pygame.event.get():
             # Detect window closed
             if event.type == pygame.QUIT:
