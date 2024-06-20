@@ -440,7 +440,7 @@ replay = True
 # - Timers - #
 class Timer:
     def __init__(self, duration) -> None:
-        self.duration = 1000*duration
+        self.duration = duration
         self.finished = False
 
         self.startTime = 0
@@ -458,13 +458,13 @@ class Timer:
 
     def update(self):
         currentTime = pygame.time.get_ticks()
-        if self.active and currentTime - self.startTime >= self.duration:
+        if self.active and currentTime - self.startTime >= (self.duration*(1000/60)):
             self.deactivate()
 
 timers = {
-    'fall': Timer(1/frameRate*speed),
-    'move': Timer(1/frameRate*16),
-    'soft down': Timer(1/frameRate*2)
+    'fall': Timer(speed),
+    'move': Timer(16),
+    'soft down': Timer(2)
 }
 # - Timers - #
 
@@ -517,7 +517,6 @@ while replay:
         if not paused:
             for timer in timers.values():
                 timer.update()
-        timers['fall'].duration = 1/frameRate*speed
         for event in pygame.event.get():
             # Detect window closed
             if event.type == pygame.QUIT:
@@ -617,23 +616,23 @@ while replay:
             if (not getInp('move left')) and (not getInp('move right')):
                 holding_input = False
                 timers['move'].deactivate()
-            if getInp('move left') and (not getInp('move right')) and (not left_collided) and timers['move'].finished():
+            if getInp('move left') and (not getInp('move right')) and (not left_collided) and timers['move'].finished:
                 currentShape.x -= 1
                 sounds['move'].play()
                 if holding_input == False:
-                    timers['move'].duration = 1/frameRate*16
+                    timers['move'].duration = 16
                 else:
-                    timers['move'].duration = 1/frameRate*6
+                    timers['move'].duration = 6
                 timers['move'].activate()
                 holding_input = True
                 getCollision()
-            if getInp('move right') and (not getInp('move left')) and (not right_collided) and timers['move'].finished():
+            if getInp('move right') and (not getInp('move left')) and (not right_collided) and timers['move'].finished:
                 currentShape.x += 1
                 sounds['move'].play()
                 if holding_input == False:
-                    timers['move'].duration = 1/frameRate*16
+                    timers['move'].duration = 16
                 else:
-                    timers['move'].duration = 1/frameRate*6
+                    timers['move'].duration = 6
                 timers['move'].activate()
                 holding_input = True
                 getCollision()
@@ -645,7 +644,7 @@ while replay:
                 score += 1
                 if score > 999999:
                     score = 999999
-                timers['soft down'].duration = 1/frameRate*2
+                timers['soft down'].duration = 2
                 timers['soft down'].activate()
                 getCollision()
             if ((not holding_down) and getInp('hard down')) and currentShape.y < ghostShape.y and not collided:
@@ -756,7 +755,7 @@ while replay:
             if score > 999999:
                 score = 999999
 
-            if collided and timers['fall'].finished or getInp('hard down')):
+            if collided and (timers['fall'].finished or getInp('hard down')):
                 currentShape.stamp()
                 sounds['place'].play()
                 if not currentShape.id in stats.keys():
@@ -777,6 +776,7 @@ while replay:
             elif timers['fall'].finished and not ((not holding_down) and (getInp('soft down') or getInp('hard down'))):
                 currentShape.y += 1
                 sounds['fall'].play()
+                timers['fall'].duration = speed
                 timers['fall'].activate()
         if AREpaused and AREpauseLength > 0:
             AREpauseLength -= 1
