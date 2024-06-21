@@ -604,10 +604,12 @@ while replay:
                         direc = None
                         for piece in currentShape.pieces:
                             if currentShape.x+piece.localx >= 10:
-                                direc = -1*(currentShape.getCenterPiece().localx+1)
+                                # direc = -1*(currentShape.getCenterPiece().localx+1)
+                                direc = -1
                                 break
                             elif currentShape.x+piece.localx <= -1:
-                                direc = currentShape.getCenterPiece().localx+1
+                                # direc = currentShape.getCenterPiece().localx+1
+                                direc = 1
                                 break
                         if direc:
                             i = True
@@ -635,10 +637,12 @@ while replay:
                         direc = None
                         for piece in currentShape.pieces:
                             if currentShape.x+piece.localx >= 10:
-                                direc = -1*(currentShape.getCenterPiece().localx+1)
+                                # direc = -1*(currentShape.getCenterPiece().localx)
+                                direc = -1
                                 break
                             elif currentShape.x+piece.localx <= -1:
-                                direc = currentShape.getCenterPiece().localx+1
+                                # direc = currentShape.getCenterPiece().localx
+                                direc = 1
                                 break
                         if direc:
                             i = True
