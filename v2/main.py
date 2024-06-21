@@ -793,7 +793,7 @@ while replay:
         writeNums((192,32),score,6)
         writeNums((208,72),lvl,2)
         i = 0
-        for shape in 'TJZOSLI':
+        for shape in 'TJZOSLI': # this must be in this order.
             writeNums((48,88+16*i),stats[shape],3)
             i += 1
 
