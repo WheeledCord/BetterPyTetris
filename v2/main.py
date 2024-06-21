@@ -260,14 +260,16 @@ class Shapes:
                 maxWidth = max(maxWidth,x)
             self.width = maxWidth
             self.height = self.hitbox.count('-')+1
-            
+        
+        def getCenterPiece(self):
+            for piece in self.pieces:
+                if piece.id == self.centerPieceId: return piece
+
         def rotate(self,dir):
             oldCenterPieceLocalX = None
             oldCenterPieceLocalY = None
             if self.centerPieceId:
-                centerPiece = None
-                for piece in self.pieces:
-                    if piece.id == self.centerPieceId: centerPiece = piece
+                centerPiece = self.getCenterPiece()
                 oldCenterPieceLocalX = centerPiece.localx
                 oldCenterPieceLocalY = centerPiece.localy
             self.rotation = self.rotation + dir
@@ -292,9 +294,7 @@ class Shapes:
             self.hitbox = str_hitbox
             self.makePieces()
             if self.centerPieceId:
-                centerPiece = None
-                for piece in self.pieces:
-                    if piece.id == self.centerPieceId: centerPiece = piece
+                centerPiece = self.getCenterPiece()
                 self.x += (oldCenterPieceLocalX - centerPiece.localx)
                 self.y += (oldCenterPieceLocalY - centerPiece.localy)
             
@@ -604,10 +604,10 @@ while replay:
                         direc = None
                         for piece in currentShape.pieces:
                             if currentShape.x+piece.localx >= 10:
-                                direc = -1
+                                direc = -1*(currentShape.getCenterPiece().localx+1)
                                 break
                             elif currentShape.x+piece.localx <= -1:
-                                direc = 1
+                                direc = currentShape.getCenterPiece().localx+1
                                 break
                         if direc:
                             i = True
@@ -635,10 +635,10 @@ while replay:
                         direc = None
                         for piece in currentShape.pieces:
                             if currentShape.x+piece.localx >= 10:
-                                direc = -1
+                                direc = -1*(currentShape.getCenterPiece().localx+1)
                                 break
                             elif currentShape.x+piece.localx <= -1:
-                                direc = 1
+                                direc = currentShape.getCenterPiece().localx+1
                                 break
                         if direc:
                             i = True
@@ -880,7 +880,8 @@ while replay:
     # Window closed logic
     else:
         pygame.mixer.music.stop()
-        sounds['death'].play()
+        if not reset:
+            sounds['death'].play()
         game_over = True
         while (game_over and not closed) and not reset:
             for event in pygame.event.get():
