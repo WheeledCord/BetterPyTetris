@@ -326,7 +326,7 @@ class Shapes:
         for shape in list(all_shapes.values()):
             out.insert(randint(0,len(out)),shape)
         return out
-    bag = __makeBag()
+    bag = []
     def fromBag() -> shape:
         if len(Shapes.bag) == 0:
             Shapes.bag = Shapes.__makeBag()
@@ -542,7 +542,7 @@ while replay:
     while running and (not reset):
         for id,sound in sounds.items():
             sound.set_volume(volume)
-        pygame.mixer.music.set_volume(volume)
+        pygame.mixer.music.set_volume(volume)   
         clock.tick(frameRate)
         if not paused:
             for timer in timers.values():
@@ -596,30 +596,32 @@ while replay:
                 if (not paused) and (not AREpaused) and event.key in controls['left rotate']:
                     currentShape.rotate(-1)
                     i = True
+                    out = False
                     for piece in currentShape.pieces:
                         if getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) == 'OUT' or getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) != '':
                             i = False
+                            out = getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) == 'OUT'
                             break
-                    if (not i) and getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) == ' OUT':
-                        direc = None
+                    if (not i) and out:
+                        oldX = currentShape.x
+                        ii = False
                         for piece in currentShape.pieces:
                             if currentShape.x+piece.localx >= 10:
-                                # direc = -1*(currentShape.getCenterPiece().localx+1)
-                                direc = -1
+                                currentShape.x = 10-currentShape.width
+                                ii = True
                                 break
                             elif currentShape.x+piece.localx <= -1:
-                                # direc = currentShape.getCenterPiece().localx+1
-                                direc = 1
+                                currentShape.x = 0
+                                ii = True
                                 break
-                        if direc:
+                        if ii:
                             i = True
-                            currentShape.x += direc
                             for piece in currentShape.pieces:
                                 if getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) == 'OUT' or getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) != '':
                                     i = False
                                     break
                             if not i:
-                                currentShape.x -= direc
+                                currentShape.x = oldX
                     if i:
                         sounds['rotate'].play()
                         getCollision()
@@ -629,30 +631,32 @@ while replay:
                 if (not paused) and (not AREpaused) and event.key in controls['right rotate']:
                     currentShape.rotate(1)
                     i = True
+                    out = False
                     for piece in currentShape.pieces:
                         if getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) == 'OUT' or getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) != '':
                             i = False
+                            out = getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) == 'OUT'
                             break
-                    if (not i) and getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) == 'OUT':
-                        direc = None
+                    if (not i) and out:
+                        oldX = currentShape.x
+                        ii = False
                         for piece in currentShape.pieces:
                             if currentShape.x+piece.localx >= 10:
-                                # direc = -1*(currentShape.getCenterPiece().localx)
-                                direc = -1
+                                currentShape.x = 10-currentShape.width
+                                ii = True
                                 break
                             elif currentShape.x+piece.localx <= -1:
-                                # direc = currentShape.getCenterPiece().localx
-                                direc = 1
+                                currentShape.x = 0
+                                ii = True
                                 break
-                        if direc:
+                        if ii:
                             i = True
-                            currentShape.x += direc
                             for piece in currentShape.pieces:
                                 if getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) == 'OUT' or getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) != '':
                                     i = False
                                     break
                             if not i:
-                                currentShape.x -= direc
+                                currentShape.x = oldX
                     if i:
                         sounds['rotate'].play()
                         getCollision()
@@ -789,7 +793,7 @@ while replay:
         writeNums((192,32),score,6)
         writeNums((208,72),lvl,2)
         i = 0
-        for shape in 'IJLOSTZ':
+        for shape in 'TJZOSLI':
             writeNums((48,88+16*i),stats[shape],3)
             i += 1
 
