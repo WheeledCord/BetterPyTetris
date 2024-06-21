@@ -152,9 +152,12 @@ def setTileonMap(x,y, value):
 
 def getTileonMap(x,y):
     try:
-        return tileMap[y][x]
+        if y < 0 or x < 0:
+            return 'OUT'
+        else:
+            return tileMap[y][x]
     except IndexError:
-        return (x,y)
+        return 'OUT'
     
 def rotateTable(table):
     return [[*r][::-1] for r in zip(*table)]
@@ -594,10 +597,10 @@ while replay:
                     currentShape.rotate(-1)
                     i = True
                     for piece in currentShape.pieces:
-                        if currentShape.x+piece.localx <= -1 or currentShape.y+piece.localy <= -1 or currentShape.x+piece.localx >= 10 or currentShape.y+piece.localy >= 20 or getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) != '':
+                        if getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) == 'OUT' or getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) != '':
                             i = False
                             break
-                    if not i:
+                    if (not i) and getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) == ' OUT':
                         direc = None
                         for piece in currentShape.pieces:
                             if currentShape.x+piece.localx >= 10:
@@ -610,8 +613,7 @@ while replay:
                             i = True
                             currentShape.x += direc
                             for piece in currentShape.pieces:
-                                if currentShape.x+piece.localx <= -1 or currentShape.y+piece.localy <= -1 or currentShape.x+piece.localx >= 10 or currentShape.y+piece.localy >= 20 or getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) != '':
-                                    currentShape.rotate(1)
+                                if getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) == 'OUT' or getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) != '':
                                     i = False
                                     break
                             if not i:
@@ -626,10 +628,10 @@ while replay:
                     currentShape.rotate(1)
                     i = True
                     for piece in currentShape.pieces:
-                        if currentShape.x+piece.localx <= -1 or currentShape.y+piece.localy <= -1 or currentShape.x+piece.localx >= 10 or currentShape.y+piece.localy >= 20 or getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) != '':
+                        if getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) == 'OUT' or getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) != '':
                             i = False
                             break
-                    if not i:
+                    if (not i) and getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) == 'OUT':
                         direc = None
                         for piece in currentShape.pieces:
                             if currentShape.x+piece.localx >= 10:
@@ -642,8 +644,7 @@ while replay:
                             i = True
                             currentShape.x += direc
                             for piece in currentShape.pieces:
-                                if currentShape.x+piece.localx <= -1 or currentShape.y+piece.localy <= -1 or currentShape.x+piece.localx >= 10 or currentShape.y+piece.localy >= 20 or getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) != '':
-                                    currentShape.rotate(1)
+                                if getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) == 'OUT' or getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) != '':
                                     i = False
                                     break
                             if not i:
