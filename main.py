@@ -524,7 +524,7 @@ while replay:
     lvl = 0
     speed = 48
     stats = {'I':0,'J':0,'L':0,'O':0,'S':0,'T':0,'Z':0}
-
+    Shapes.bag = []
     currentShape = Shapes.fromBag()
     currentShape.x = 4
     currentShape.y = 0
