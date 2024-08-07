@@ -1,6 +1,6 @@
 # ~ Imports ~ #
 import pygame
-from random import randint
+from random import shuffle
 from os import environ as osEnviron
 from os import path as osPath
 from copy import deepcopy
@@ -323,13 +323,8 @@ class Shapes:
     Z = shape('Z','2','01x - 23')
 
     def __makeBag():
-        out = []
-        for shape in list(all_shapes.values()):
-            if len(out) == 0:
-                out.insert(0,shape)
-            else:
-                out.insert(randint(0,len(out)-1),shape)
-        # print(out)
+        out = list(all_shapes.values())
+        shuffle(out)
         return out
     bag = []
 
