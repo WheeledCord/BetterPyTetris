@@ -14,8 +14,11 @@ clock = pygame.time.Clock()
 # Create window
 (display_width,display_height) = (256,224)
 
+scale = 0
 # Window scale
-def setScale(scale: int):
+def setScale(_scale: int):
+    global scale
+    scale = _scale
     osEnviron['SDL_VIDEO_CENTERED'] = '1'
     pygame.display.set_mode((scale*display_width, scale*display_height))
 
@@ -173,7 +176,7 @@ def rotateTable(table):
 stamps = []
 def drawStamps():
     for pos, sprite in stamps:
-        screen.blit(sprite.image, pos)
+        screen.blit(sprite.image, (pos[0]+2,pos[1]+10))
 
 TotalAREpauseLength = 60
 AREFlashes = 3
@@ -181,9 +184,9 @@ flash_stamps = []
 def flashStamps():
     for pos, sprite in flash_stamps:
         if AREpauseLength <= (TotalAREpauseLength/(2*AREFlashes)) or (AREpauseLength > (TotalAREpauseLength/(2*AREFlashes))*2 and AREpauseLength <= (TotalAREpauseLength/(2*AREFlashes))*3) or (AREpauseLength > (TotalAREpauseLength/(2*AREFlashes))*4 and AREpauseLength <= (TotalAREpauseLength/(2*AREFlashes))*5):
-            screen.blit(sprite.image, pos)
+            screen.blit(sprite.image, (pos[0]+2,pos[1]+10))
         else:
-            pygame.draw.rect(screen, 'white', (pos[0], pos[1], 7, 7))
+            pygame.draw.rect(screen, 'white', (pos[0]+2, pos[1]+10, 7, 7))
 
 # Draw Text
 def writeNums(pos: tuple, num: int, length: int,color=(255,255,255)):
@@ -193,7 +196,7 @@ def writeNums(pos: tuple, num: int, length: int,color=(255,255,255)):
     for c in full_num:
         text = pygame.image.load(f'images/text/{c}.png').convert_alpha()
         text.fill(color, special_flags=pygame.BLEND_RGB_MULT)
-        screen.blit(text, (pos[0]+8*i,pos[1]))
+        screen.blit(text, (pos[0]+8*i+2,pos[1]+10))
         i += 1
 
 
@@ -305,8 +308,8 @@ class Shapes:
             
         def draw(self):
             for piece in self.pieces:
-                piece.sprite.rect.x = 96+(8*(self.x+piece.localx))
-                piece.sprite.rect.y = 40+(8*(self.y+piece.localy))
+                piece.sprite.rect.x = 96+(8*(self.x+piece.localx))+2
+                piece.sprite.rect.y = 40+(8*(self.y+piece.localy))+10
             self.piecesGroup.draw(screen)
             
         def stamp(self):
@@ -780,9 +783,9 @@ while replay:
                 running = False
                 break
         if running:
-            screen.blit(nextShape.gui_sprite,(191,95))
+            screen.blit(nextShape.gui_sprite,(191+2,95+10))
             if holdShape != None:
-                screen.blit(holdShape.gui_sprite,(191,151))
+                screen.blit(holdShape.gui_sprite,(191+2,151+10))
             if show_ghost:
                 ghostShape.draw()
             currentShape.draw()
@@ -796,7 +799,7 @@ while replay:
             layer2.fill(hsv_to_rgb(300,20,100,0), special_flags=pygame.BLEND_RGB_MULT)
             screen.blit(layer1,(0,0))
             screen.blit(layer2,(0,0))
-            screen.blit(layer3,(0,0))
+            screen.blit(layer3,(0+2,0+10))
         else:
             screen.blit(pygame.image.load('images/gui/bg.png').convert_alpha(),(0,0))
             screen.fill(hsv_to_rgb(overflowNum(lvl*12,360),41,100,0), special_flags=pygame.BLEND_RGB_MULT)
@@ -804,8 +807,8 @@ while replay:
             layer2.fill(hsv_to_rgb(overflowNum(lvl*12,360),20,100,0), special_flags=pygame.BLEND_RGB_MULT)
             screen.blit(layer2,(0,0))
             layer3.fill(hsv_to_rgb(overflowNum(lvl*12,360),20,100,0), special_flags=pygame.BLEND_RGB_MULT)
-            screen.blit(layer3,(0,0))
-        screen.blit(pygame.image.load('images/gui/staticText.png').convert_alpha(),(0,0))
+            screen.blit(layer3,(0+2,0+10))
+        screen.blit(pygame.image.load('images/gui/staticText.png').convert_alpha(),(0+2,0+10))
         writeNums((152,16),lines,3)
         writeNums((192,32),score,6)
         writeNums((208,72),lvl,2)
@@ -826,11 +829,11 @@ while replay:
                 writeNums((2,0),int(clock.get_fps()),2,(255,255,255))
 
         if paused and running:
-            screen.blit(paused_overlay,(0,0))
+            screen.blit(paused_overlay,(0+2,0+10))
         if not running:
-            screen.blit(death_overlay,(0,0))
-
-        scaled = pygame.transform.scale(screen, display.get_size())
+            screen.blit(death_overlay,(0+2,0+10))
+        display_size = display.get_size()
+        scaled = pygame.transform.scale(screen, (display_size[0]+(4*scale),display_size[1]+(20*scale)))
         shake = 0
         softShake = 0
         if (not paused) and running and doShakes:
@@ -839,7 +842,7 @@ while replay:
             if softShakeFrames > 0:
                 softShake = randint(-2,2)
         display.fill('black')
-        display.blit(scaled, (0+softShake, 0+shake))
+        display.blit(scaled, (0+(softShake*scale)-(2*scale), 0+(shake*scale)-(10*scale)))
         pygame.display.flip()
 
 
