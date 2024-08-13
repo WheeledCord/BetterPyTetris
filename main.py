@@ -26,7 +26,7 @@ pygame.display.set_icon(icon)
 setScale(3)
 
 # Load assets
-screen = pygame.image.load('images/gui/bg.png').convert()
+screen = pygame.image.load('images/gui/bg.png').convert_alpha()
 paused_overlay = pygame.image.load('images/gui/paused.png').convert_alpha()
 death_overlay = pygame.image.load('images/gui/gameOver.png').convert_alpha()
 pygame.mixer.music.load('sounds/music.mp3')
