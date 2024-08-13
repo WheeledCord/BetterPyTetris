@@ -15,6 +15,7 @@ we made tetris in pygame. pain insued.
 **Reset:** r\
 **Quit:** escape\
 **Toggle Ghost:** g\
+**Toggle Drop Shaking:** s\
 **Toggle Colour Change:** h\
 **Toggle FPS Display:** j\
 **Scale 1:** 1\
