@@ -1,6 +1,6 @@
 # ~ Imports ~ #
 import pygame
-from random import shuffle
+from random import shuffle,randint
 from os import environ as osEnviron
 from os import path as osPath
 from copy import deepcopy
@@ -60,6 +60,7 @@ controls = {
     'pause': [pygame.K_RETURN],
     'reset': [pygame.K_r],
     'quit': [pygame.K_ESCAPE],
+    'toggle shake': [pygame.K_s],
     'toggle ghost': [pygame.K_g],
     'toggle colour': [pygame.K_h],
     'toggle fps': [pygame.K_j],
@@ -113,6 +114,10 @@ volume = 1.0
 AREpaused = False
 AREpauseLength = 0
 linesCleared = 0
+
+shakeFrames = 0
+softShakeFrames = 0
+doShakes = True
 
 score = 0
 lines = 0
@@ -514,6 +519,10 @@ while replay:
     AREpauseLength = 0
     linesCleared = 0
 
+    shakeFrames = 0
+    softShakeFrames = 0
+    doShakes = True
+
     score = 0
     lines = 0
     lvl = 0
@@ -547,6 +556,10 @@ while replay:
         if not paused:
             for timer in timers.values():
                 timer.update()
+            if shakeFrames > 0:
+                shakeFrames -= 1
+            if softShakeFrames > 0:
+                softShakeFrames -= 1
         for event in pygame.event.get():
             # Detect window closed
             if event.type == pygame.QUIT:
@@ -593,6 +606,8 @@ while replay:
                     replay = False
                 if event.key in controls['toggle ghost']:
                     show_ghost = not show_ghost
+                if event.key in controls['toggle shake']:
+                    doShakes = not doShakes
                 if (not paused) and (not AREpaused) and event.key in controls['left rotate']:
                     currentShape.rotate(-1)
                     i = True
@@ -730,12 +745,14 @@ while replay:
                 timers['soft down'].duration = 2
                 timers['soft down'].activate()
                 timers['fall'].activate()
+                softShakeFrames = 5
             if ((not holding_down) and getInp('hard down')) and currentShape.y < ghostShape.y and not collided:
                 score += 2*(ghostShape.y - currentShape.y)
                 currentShape.y = ghostShape.y
                 getCollision()
                 if score > 999999:
                     score = 999999 
+                shakeFrames = 10
 
         # Rendering
         screen = pygame.image.load('images/gui/bg.png').convert_alpha()
@@ -814,7 +831,15 @@ while replay:
             screen.blit(death_overlay,(0,0))
 
         scaled = pygame.transform.scale(screen, display.get_size())
-        display.blit(scaled, (0, 0))
+        shake = 0
+        softShake = 0
+        if (not paused) and running and doShakes:
+            if shakeFrames > 0:
+                shake = randint(-10,10)
+            if softShakeFrames > 0:
+                softShake = randint(-2,2)
+        display.fill('black')
+        display.blit(scaled, (0+softShake, 0+shake))
         pygame.display.flip()
 
 
