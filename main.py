@@ -68,6 +68,8 @@ def getGraphValues(image_path):
 scoreParticleSizeCurve = getGraphValues('scoreParticleSize.png')
 spreadParticleSizeCurve = getGraphValues('spreadParticleSize.png')
 volumeIndicatorPosCurve = getGraphValues('volumeIndicatorPos.png')
+hardDropShakeOffsetCurve = getGraphValues('hardDropShakeOffset.png')
+softDropShakeOffsetCurve = getGraphValues('softDropShakeOffset.png')
 
 # - Load controls - #
 controls = {
@@ -837,7 +839,8 @@ while replay:
                 timers['soft down'].duration = 2
                 timers['soft down'].activate()
                 timers['fall'].activate()
-                softShakeFrames = 5
+                if softShakeFrames < len(softDropShakeOffsetCurve)//2:
+                    softShakeFrames = len(softDropShakeOffsetCurve)
             if ((not holding_down) and getInp('hard down')) and currentShape.y < ghostShape.y and not collided:
                 score += 2*(ghostShape.y - currentShape.y)
                 if doParticles:
@@ -846,7 +849,7 @@ while replay:
                 getCollision()
                 if score > 999999:
                     score = 999999 
-                shakeFrames = 10
+                shakeFrames = len(hardDropShakeOffsetCurve)
 
         # Rendering
         screen = pygame.image.load('images/gui/bg.png').convert_alpha()
@@ -978,10 +981,10 @@ while replay:
         shake = 0
         softShake = 0
         if (not paused) and running and doShakes:
-            if shakeFrames > 0:
-                shake = randint(-10,10)
+            if shakeFrames > 0 and shakeFrames < len(hardDropShakeOffsetCurve):
+                shake = hardDropShakeOffsetCurve[len(hardDropShakeOffsetCurve)-shakeFrames]-11
             if softShakeFrames > 0:
-                softShake = randint(-2,2)
+                softShake = softDropShakeOffsetCurve[len(softDropShakeOffsetCurve)-softShakeFrames]-5
         display.fill('black')
         display.blit(scaled, (0+(softShake*scale)-(2*scale), 0+(shake*scale)-(10*scale)))
         pygame.display.flip()
