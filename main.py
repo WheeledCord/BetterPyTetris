@@ -1,6 +1,6 @@
 # ~ Imports ~ #
 import pygame
-from random import shuffle,randint,randrange
+from random import shuffle,randrange
 from os import environ as osEnviron
 from os import path as osPath
 from copy import deepcopy
