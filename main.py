@@ -637,9 +637,9 @@ while replay:
                 replay = False
             if event.type == pygame.KEYDOWN:
                 if event.key in controls['volume up']:
-                    volume += 0.1
+                    volume = round(volume+0.1,1)
                     if volume < 0:
-                        volume = 0
+                        volume = 0.0
                     elif volume > 1.0:
                         volume = 1.0
                     if volumeIndicatorFrames >= len(volumeIndicatorPosCurve):
@@ -649,9 +649,9 @@ while replay:
                     elif volumeIndicatorFrames > len(volumeIndicatorPosCurve)-volumeIndicatorPosCurve[::-1].index(100):
                         volumeIndicatorFrames = len(volumeIndicatorPosCurve)-volumeIndicatorFrames
                 elif event.key in controls['volume down']:
-                    volume -= 0.1
+                    volume = round(volume-0.1,1)
                     if volume < 0:
-                        volume = 0
+                        volume = 0.0
                     elif volume > 1.0:
                         volume = 1.0
                     if volumeIndicatorFrames >= len(volumeIndicatorPosCurve):
@@ -661,7 +661,7 @@ while replay:
                     elif volumeIndicatorFrames > len(volumeIndicatorPosCurve)-volumeIndicatorPosCurve[::-1].index(100):
                         volumeIndicatorFrames = len(volumeIndicatorPosCurve)-volumeIndicatorFrames
                 elif event.key in controls['mute']:
-                    volume = 0
+                    volume = 0.0
                     if volumeIndicatorFrames >= len(volumeIndicatorPosCurve):
                         volumeIndicatorFrames = 0
                     elif volumeIndicatorPosCurve[volumeIndicatorFrames] == 100:
