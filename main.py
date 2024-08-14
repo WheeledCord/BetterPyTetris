@@ -1,6 +1,6 @@
 # ~ Imports ~ #
 import pygame
-from random import shuffle,randint
+from random import shuffle,randint,randrange
 from os import environ as osEnviron
 from os import path as osPath
 from copy import deepcopy
@@ -32,6 +32,7 @@ setScale(3)
 screen = pygame.image.load('images/gui/bg.png').convert_alpha()
 paused_overlay = pygame.image.load('images/gui/paused.png').convert_alpha()
 death_overlay = pygame.image.load('images/gui/gameOver.png').convert_alpha()
+lvl_up_particle = pygame.image.load('images/gui/lvlUpParticle.png').convert_alpha()
 pygame.mixer.music.load('sounds/music.mp3')
 
 sounds = {
@@ -50,6 +51,21 @@ pieces = [
     pygame.image.load('images/pieces/ghost.png').convert_alpha()
 ]
 
+def getGraphValues(image_path):
+    img = pygame.image.load(image_path)
+    img = img.convert()
+    width, height = img.get_size()
+    pixel_counts = []
+    for x in range(width):
+        pixel_counts.append(0)
+        for y in range(height):
+            color = img.get_at((x,y))
+            if color != (255,255,255,255):
+                pixel_counts[x] += 1
+    return pixel_counts
+
+scoreParticleCurve = getGraphValues('images/gui/scoreParticleCurve.png')
+spreadParticleCurve = getGraphValues('images/gui/spreadParticleCurve.png')
 
 # - Load controls - #
 controls = {
@@ -122,6 +138,9 @@ shakeFrames = 0
 softShakeFrames = 0
 doShakes = True
 
+scoreParticles = []
+spreadParticles = []
+
 score = 0
 lines = 0
 lvl = 0
@@ -189,18 +208,56 @@ def flashStamps():
             pygame.draw.rect(screen, 'white', (pos[0]+2, pos[1]+10, 7, 7))
 
 # Draw Text
-def writeNums(pos: tuple, num: int, length: int,color=(255,255,255)):
+def writeNums(pos: tuple, num: int, length: int, surface: pygame.Surface, color=(255,255,255)):
     full_num = str(num)
-    full_num = (length-len(full_num))*'0'+full_num
+    if length != -1:
+        full_num = (length-len(full_num))*'0'+full_num
     i = 0
     for c in full_num:
         text = pygame.image.load(f'images/text/{c}.png').convert_alpha()
         text.fill(color, special_flags=pygame.BLEND_RGB_MULT)
-        screen.blit(text, (pos[0]+8*i+2,pos[1]+10))
+        surface.blit(text, (pos[0]+8*i,pos[1]))
         i += 1
 
+# Draw Score Particle
+def makeScoreParticle(pos: tuple, amount: int, color=(255,255,255)):
+    global scoreParticles
+    surface = pygame.Surface((8*(len(str(amount))+1)-1,7), pygame.SRCALPHA)
+    writeNums((0,0),'+'+str(amount),-1,surface,color=color)
+    scoreParticles.append((pos,surface,0))
 
 
+class SpreadParticles:
+    class Particle:
+        def __init__(self,x,y,xv,yv,gs,img,c=(255,255,255)) -> None:
+            self.x = x
+            self.y = y
+            self.x_vel = xv
+            self.y_vel = yv
+            self.gravity_scale = gs * randrange(1,2)
+            self.img = img
+            self.color = c
+            self.age = 0
+            self.gravity = randrange(2,7)
+        def draw(self,surface: pygame.Surface):
+            self.age += 1
+            self.gravity -= self.gravity_scale
+            self.x += self.x_vel
+            self.y += self.y_vel * self.gravity
+            colored = self.img.copy()
+            colored.fill(self.color,special_flags=pygame.BLEND_RGB_MULT)
+            sized = pygame.transform.scale(colored, ((spreadParticleCurve[self.age]*0.01)*self.img.get_width(),(spreadParticleCurve[age]*0.01)*self.img.get_height()))
+            surface.blit(sized,(self.x-(sized.get_width()//2),self.y-(sized.get_height()//2))) 
+    def __init__(self,amount,start_x,start_y,gravity_scale,img,color=(255,255,255)) -> None:
+        self.particles = []
+        for i in range(amount):
+            self.particles.append(self.Particle(start_x,start_y,randrange(-4,4),randrange(-2,0),gravity_scale,img,color))
+    def draw(self,surface):
+        for particle in self.particles:
+            if particle.age >= 89:
+                self.particles.pop(self.particles.index(particle))
+            else:
+                particle.draw(surface)
 
 # Shapes and pieces
 all_shapes = {}
@@ -230,16 +287,16 @@ class Shapes:
             self.makePieces()
             if id[0] != 'G':
                 all_shapes[id] = self
-                self.gui_sprite = pygame.surface.Surface((33,42), pygame.SRCALPHA)
-                shape_sprite = pygame.surface.Surface((8*self.width,8*self.height), pygame.SRCALPHA)
+                self.gui_sprite = pygame.Surface((33,42), pygame.SRCALPHA)
+                shape_sprite = pygame.Surface((8*self.width,8*self.height), pygame.SRCALPHA)
                 for piece in self.pieces:
                     shape_sprite.blit(piece.sprite.image,(8*piece.localx,8*piece.localy))
                 rect = shape_sprite.get_rect()
                 rect.center = (17,25)
                 self.gui_sprite.blit(shape_sprite,rect)
-                self.stat_sprite = pygame.surface.Surface((6*self.width,6*self.height), pygame.SRCALPHA)
+                self.stat_sprite = pygame.Surface((6*self.width,6*self.height), pygame.SRCALPHA)
                 for piece in self.pieces:
-                    pieceSprite = pygame.surface.Surface((6,6), pygame.SRCALPHA)
+                    pieceSprite = pygame.Surface((6,6), pygame.SRCALPHA)
                     pieceSprite.blit(pygame.transform.scale(piece.sprite.image,(5,5)),(0,0))
                     pygame.draw.line(pieceSprite,(0,0,0),(5,0),(5,5))
                     pygame.draw.line(pieceSprite,(0,0,0),(0,5),(5,5))
@@ -372,6 +429,7 @@ def clearLine(y: int):
     lines += 1
     if lines % 10 == 0:
         lvl += 1
+        spreadParticles.append(SpreadParticles(25,screen.get_width()//2,screen.get_height()//2,0.2,lvl_up_particle))
         if lvl < 9:
             speed -= 5
         elif lvl == 9:
@@ -525,6 +583,9 @@ while replay:
     shakeFrames = 0
     softShakeFrames = 0
     doShakes = True
+
+    scoreParticles = []
+    spreadParticles = []
 
     score = 0
     lines = 0
@@ -743,6 +804,7 @@ while replay:
                 getCollision()
                 sounds['soft_drop'].play()
                 score += 1
+                makeScoreParticle((96+(8*(currentShape.x+(currentShape.width // 2)))+2,40+(8*(currentShape.y+(currentShape.height // 2)))+10),1)
                 if score > 999999:
                     score = 999999
                 timers['soft down'].duration = 2
@@ -751,6 +813,7 @@ while replay:
                 softShakeFrames = 5
             if ((not holding_down) and getInp('hard down')) and currentShape.y < ghostShape.y and not collided:
                 score += 2*(ghostShape.y - currentShape.y)
+                makeScoreParticle((96+(8*(currentShape.x+(currentShape.width // 2)))+2,40+(8*(currentShape.y+(currentShape.height // 2)))+10),2*(ghostShape.y - currentShape.y))
                 currentShape.y = ghostShape.y
                 getCollision()
                 if score > 999999:
@@ -789,7 +852,7 @@ while replay:
             if show_ghost:
                 ghostShape.draw()
             currentShape.draw()
-        layer3 = pygame.surface.Surface((256,224), pygame.SRCALPHA)
+        layer3 = pygame.Surface((256,224), pygame.SRCALPHA)
         for id,pos in {'T':(26,85),'J':(26,100),'Z':(26,117),'O':(29,133),'S':(26,149),'L':(26,164),'I':(24,184)}.items():
             layer3.blit(all_shapes[id].stat_sprite,pos)
         if lvl == 0 or not coloured:
@@ -809,24 +872,52 @@ while replay:
             layer3.fill(hsv_to_rgb(overflowNum(lvl*12,360),20,100,0), special_flags=pygame.BLEND_RGB_MULT)
             screen.blit(layer3,(0+2,0+10))
         screen.blit(pygame.image.load('images/gui/staticText.png').convert_alpha(),(0+2,0+10))
-        writeNums((152,16),lines,3)
-        writeNums((192,32),score,6)
-        writeNums((208,72),lvl,2)
+        writeNums((152+2,16+10),lines,3,screen)
+        writeNums((192+2,32+10),score,6,screen)
+        writeNums((208+2,72+10),lvl,2,screen)
         i = 0
         for shape in 'TJZOSLI': # this must be in this order.
-            writeNums((48,88+16*i),stats[shape],3)
+            writeNums((48+2,88+16*i+10),stats[shape],3,screen)
             i += 1
+        temp = scoreParticles
+        i = 0
+        for [_pos,particle,_age] in temp:
+            if (not paused) and running:
+                pos = _pos
+                age = _age
+                sized = pygame.transform.scale(particle, ((scoreParticleCurve[age]*0.01)*particle.get_width(),(scoreParticleCurve[age]*0.01)*particle.get_height()))
+                if pos[0] == 'center':
+                    pos = (screen.get_width()//2,pos[1])
+                if pos[1] == 'center':
+                    pos = (pos[0],screen.get_height()//2 - (sized.get_height()//2))
+                age += 1
+                if age >= 89:
+                    scoreParticles.pop(i)
+                else:
+                    scoreParticles[i] = (_pos,particle,age)
+                    if AREpaused and screen.get_at((pos[0]-(sized.get_width()//2),pos[1])) == (255,255,255,255):
+                        sized.fill('black',special_flags=pygame.BLEND_RGB_MULT)
+                    screen.blit(sized,(pos[0]-(sized.get_width()//2),pos[1]))
+            i += 1
+        for _spreadParticles in spreadParticles:
+            if len(_spreadParticles.particles) == 0:
+                spreadParticles.remove(_spreadParticles)
+            else:
+                if (not paused) and running:
+                    _spreadParticles.draw(screen)
 
         if show_fps:
-            pygame.draw.rect(screen,(0,0,0),pygame.Rect(0,0,19,9))
+            pygame.draw.rect(screen,(0,0,0),pygame.Rect(0,0,21,19))
+            fps_color = (255,255,255)
             if int(clock.get_fps()) < 20:
-                writeNums((2,0),int(clock.get_fps()),2,(255,0,0))
+                fps_color = (255,0,0)
             elif int(clock.get_fps()) < 30:
-                writeNums((2,0),int(clock.get_fps()),2,(255,128,0))
+                fps_color = (255,128,0)
             elif int(clock.get_fps()) < 40:
-                writeNums((2,0),int(clock.get_fps()),2,(255,255,0))
+                fps_color = (255,255,0)
             else:
-                writeNums((2,0),int(clock.get_fps()),2,(255,255,255))
+                fps_color = (255,255,255)
+            writeNums((2+2,0+10),int(clock.get_fps()),2,screen,color=fps_color)
 
         if paused and running:
             screen.blit(paused_overlay,(0+2,0+10))
@@ -851,6 +942,7 @@ while replay:
             getCollision()
 
             i = 0
+            lines_cleared = []
             cleared_count = 0
             for row in tileMap:
                 cleared = True
@@ -860,12 +952,21 @@ while replay:
                         break
                 if cleared:
                     clearLine(i)
+                    lines_cleared.append(i)
                     cleared_count += 1
                 i += 1
             score += (cleared_count // 4)*(1200*(lvl+1)) # tetrises
+            if (cleared_count // 4) != 0:
+                makeScoreParticle(('center',40+(8*sorted(lines_cleared)[0])+10),(cleared_count // 4)*(1200*(lvl+1)))
             score += ((cleared_count % 4) // 3)*(300*(lvl+1)) # triples
-            score += (((cleared_count % 4) % 3) // 2)*(100*(lvl+1)) # doubles 
+            if ((cleared_count % 4) // 3) != 0:
+                makeScoreParticle(('center',40+(8*sorted(lines_cleared)[0])+10),((cleared_count % 4) // 3)*(300*(lvl+1)))
+            score += (((cleared_count % 4) % 3) // 2)*(100*(lvl+1)) # doubles
+            if (((cleared_count % 4) % 3) // 2) != 0:
+                makeScoreParticle(('center',40+(8*sorted(lines_cleared)[0])+10),(((cleared_count % 4) % 3) // 2)*(100*(lvl+1)))
             score += (((cleared_count % 4) % 3) % 2)*(40*(lvl+1)) # singles
+            if (((cleared_count % 4) % 3) % 2) != 0:
+                makeScoreParticle(('center',40+(8*sorted(lines_cleared)[0])+10),(((cleared_count % 4) % 3) % 2)*(40*(lvl+1)))
             if score > 999999:
                 score = 999999
 
@@ -929,7 +1030,7 @@ while replay:
                     if event.key in controls['quit']:
                         closed = True
                         replay = False
-                    if event.key == pygame.K_RETURN:
+                    if event.key == pygame.K_RETURN or event.key in controls['reset']:
                         game_over = False
 else:
     print('crashed :(') # we love how this is still here lmao
