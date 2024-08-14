@@ -431,7 +431,8 @@ def clearLine(y: int):
     lines += 1
     if lines % 10 == 0:
         lvl += 1
-        spreadParticles.append(SpreadParticles(25,screen.get_width()//2,screen.get_height()//2,0.2,lvl_up_particle))
+        if doParticles:
+            spreadParticles.append(SpreadParticles(25,screen.get_width()//2,screen.get_height()//2,0.2,lvl_up_particle))
         if lvl < 9:
             speed -= 5
         elif lvl == 9:
@@ -584,8 +585,6 @@ while replay:
 
     shakeFrames = 0
     softShakeFrames = 0
-    doShakes = True
-    doParticles = True  
 
     scoreParticles = []
     spreadParticles = []
@@ -809,7 +808,8 @@ while replay:
                 getCollision()
                 sounds['soft_drop'].play()
                 score += 1
-                makeScoreParticle((96+(8*(currentShape.x+(currentShape.width // 2)))+2,40+(8*(currentShape.y+(currentShape.height // 2)))+10),1)
+                if doParticles:
+                    makeScoreParticle((96+(8*(currentShape.x+(currentShape.width // 2)))+2,40+(8*(currentShape.y+(currentShape.height // 2)))+10),1)
                 if score > 999999:
                     score = 999999
                 timers['soft down'].duration = 2
@@ -818,7 +818,8 @@ while replay:
                 softShakeFrames = 5
             if ((not holding_down) and getInp('hard down')) and currentShape.y < ghostShape.y and not collided:
                 score += 2*(ghostShape.y - currentShape.y)
-                makeScoreParticle((96+(8*(currentShape.x+(currentShape.width // 2)))+2,40+(8*(currentShape.y+(currentShape.height // 2)))+10),2*(ghostShape.y - currentShape.y))
+                if doParticles:
+                    makeScoreParticle((96+(8*(currentShape.x+(currentShape.width // 2)))+2,40+(8*(currentShape.y+(currentShape.height // 2)))+10),2*(ghostShape.y - currentShape.y))
                 currentShape.y = ghostShape.y
                 getCollision()
                 if score > 999999:
@@ -884,32 +885,33 @@ while replay:
         for shape in 'TJZOSLI': # this must be in this order.
             writeNums((48+2,88+16*i+10),stats[shape],3,screen)
             i += 1
-        temp = scoreParticles
-        i = 0
-        for [_pos,particle,_age] in temp:
-            if (not paused) and running:
-                pos = _pos
-                age = _age
-                sized = pygame.transform.scale(particle, ((scoreParticleCurve[age]*0.01)*particle.get_width(),(scoreParticleCurve[age]*0.01)*particle.get_height()))
-                if pos[0] == 'center':
-                    pos = (screen.get_width()//2,pos[1])
-                if pos[1] == 'center':
-                    pos = (pos[0],screen.get_height()//2 - (sized.get_height()//2))
-                age += 1
-                if age >= 89:
-                    scoreParticles.pop(i)
-                else:
-                    scoreParticles[i] = (_pos,particle,age)
-                    if AREpaused and screen.get_at((pos[0]-(sized.get_width()//2),pos[1])) == (255,255,255,255):
-                        sized.fill('black',special_flags=pygame.BLEND_RGB_MULT)
-                    screen.blit(sized,(pos[0]-(sized.get_width()//2),pos[1]))
-            i += 1
-        for _spreadParticles in spreadParticles:
-            if len(_spreadParticles.particles) == 0:
-                spreadParticles.remove(_spreadParticles)
-            else:
+        if doParticles:
+            temp = scoreParticles
+            i = 0
+            for [_pos,particle,_age] in temp:
                 if (not paused) and running:
-                    _spreadParticles.draw(screen)
+                    pos = _pos
+                    age = _age
+                    sized = pygame.transform.scale(particle, ((scoreParticleCurve[age]*0.01)*particle.get_width(),(scoreParticleCurve[age]*0.01)*particle.get_height()))
+                    if pos[0] == 'center':
+                        pos = (screen.get_width()//2,pos[1])
+                    if pos[1] == 'center':
+                        pos = (pos[0],screen.get_height()//2 - (sized.get_height()//2))
+                    age += 1
+                    if age >= 89:
+                        scoreParticles.pop(i)
+                    else:
+                        scoreParticles[i] = (_pos,particle,age)
+                        if AREpaused and screen.get_at((pos[0]-(sized.get_width()//2),pos[1])) == (255,255,255,255):
+                            sized.fill('black',special_flags=pygame.BLEND_RGB_MULT)
+                        screen.blit(sized,(pos[0]-(sized.get_width()//2),pos[1]))
+                i += 1
+            for _spreadParticles in spreadParticles:
+                if len(_spreadParticles.particles) == 0:
+                    spreadParticles.remove(_spreadParticles)
+                else:
+                    if (not paused) and running:
+                        _spreadParticles.draw(screen)
 
         if show_fps:
             pygame.draw.rect(screen,(0,0,0),pygame.Rect(0,0,21,19))
@@ -961,16 +963,16 @@ while replay:
                     cleared_count += 1
                 i += 1
             score += (cleared_count // 4)*(1200*(lvl+1)) # tetrises
-            if (cleared_count // 4) != 0:
+            if doParticles and (cleared_count // 4) != 0:
                 makeScoreParticle(('center',40+(8*sorted(lines_cleared)[0])+10),(cleared_count // 4)*(1200*(lvl+1)))
             score += ((cleared_count % 4) // 3)*(300*(lvl+1)) # triples
-            if ((cleared_count % 4) // 3) != 0:
+            if doParticles and ((cleared_count % 4) // 3) != 0:
                 makeScoreParticle(('center',40+(8*sorted(lines_cleared)[0])+10),((cleared_count % 4) // 3)*(300*(lvl+1)))
             score += (((cleared_count % 4) % 3) // 2)*(100*(lvl+1)) # doubles
-            if (((cleared_count % 4) % 3) // 2) != 0:
+            if doParticles and (((cleared_count % 4) % 3) // 2) != 0:
                 makeScoreParticle(('center',40+(8*sorted(lines_cleared)[0])+10),(((cleared_count % 4) % 3) // 2)*(100*(lvl+1)))
             score += (((cleared_count % 4) % 3) % 2)*(40*(lvl+1)) # singles
-            if (((cleared_count % 4) % 3) % 2) != 0:
+            if doParticles and (((cleared_count % 4) % 3) % 2) != 0:
                 makeScoreParticle(('center',40+(8*sorted(lines_cleared)[0])+10),(((cleared_count % 4) % 3) % 2)*(40*(lvl+1)))
             if score > 999999:
                 score = 999999
