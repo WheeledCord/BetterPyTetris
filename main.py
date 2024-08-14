@@ -33,6 +33,7 @@ screen = pygame.image.load('images/gui/bg.png').convert_alpha()
 paused_overlay = pygame.image.load('images/gui/paused.png').convert_alpha()
 death_overlay = pygame.image.load('images/gui/gameOver.png').convert_alpha()
 lvl_up_particle = pygame.image.load('images/gui/lvlUpParticle.png').convert_alpha()
+volumeText = pygame.image.load('images/gui/volume.png').convert_alpha()
 pygame.mixer.music.load('sounds/music.mp3')
 
 sounds = {
@@ -52,7 +53,7 @@ pieces = [
 ]
 
 def getGraphValues(image_path):
-    img = pygame.image.load(image_path)
+    img = pygame.image.load('images/curves/'+image_path)
     img = img.convert()
     width, height = img.get_size()
     pixel_counts = []
@@ -64,8 +65,9 @@ def getGraphValues(image_path):
                 pixel_counts[x] += 1
     return pixel_counts
 
-scoreParticleCurve = getGraphValues('images/gui/scoreParticleCurve.png')
-spreadParticleCurve = getGraphValues('images/gui/spreadParticleCurve.png')
+scoreParticleSizeCurve = getGraphValues('scoreParticleSize.png')
+spreadParticleSizeCurve = getGraphValues('spreadParticleSize.png')
+volumeIndicatorPosCurve = getGraphValues('volumeIndicatorPos.png')
 
 # - Load controls - #
 controls = {
@@ -142,6 +144,8 @@ doParticles = True
 
 scoreParticles = []
 spreadParticles = []
+
+volumeIndicatorFrames = len(volumeIndicatorPosCurve)-1
 
 score = 0
 lines = 0
@@ -248,7 +252,7 @@ class SpreadParticles:
             self.y += self.y_vel * self.gravity
             colored = self.img.copy()
             colored.fill(self.color,special_flags=pygame.BLEND_RGB_MULT)
-            sized = pygame.transform.scale(colored, ((spreadParticleCurve[self.age]*0.01)*self.img.get_width(),(spreadParticleCurve[age]*0.01)*self.img.get_height()))
+            sized = pygame.transform.scale(colored, ((spreadParticleSizeCurve[self.age]*0.01)*self.img.get_width(),(spreadParticleSizeCurve[age]*0.01)*self.img.get_height()))
             surface.blit(sized,(self.x-(sized.get_width()//2),self.y-(sized.get_height()//2))) 
     def __init__(self,amount,start_x,start_y,gravity_scale,img,color=(255,255,255)) -> None:
         self.particles = []
@@ -638,14 +642,32 @@ while replay:
                         volume = 0
                     elif volume > 1.0:
                         volume = 1.0
+                    if volumeIndicatorFrames >= len(volumeIndicatorPosCurve):
+                        volumeIndicatorFrames = 0
+                    elif volumeIndicatorPosCurve[volumeIndicatorFrames] == 100:
+                        volumeIndicatorFrames = volumeIndicatorPosCurve.index(100)
+                    elif volumeIndicatorFrames > len(volumeIndicatorPosCurve)-volumeIndicatorPosCurve[::-1].index(100):
+                        volumeIndicatorFrames = len(volumeIndicatorPosCurve)-volumeIndicatorFrames
                 elif event.key in controls['volume down']:
                     volume -= 0.1
                     if volume < 0:
                         volume = 0
                     elif volume > 1.0:
                         volume = 1.0
+                    if volumeIndicatorFrames >= len(volumeIndicatorPosCurve):
+                        volumeIndicatorFrames = 0
+                    elif volumeIndicatorPosCurve[volumeIndicatorFrames] == 100:
+                        volumeIndicatorFrames = volumeIndicatorPosCurve.index(100)
+                    elif volumeIndicatorFrames > len(volumeIndicatorPosCurve)-volumeIndicatorPosCurve[::-1].index(100):
+                        volumeIndicatorFrames = len(volumeIndicatorPosCurve)-volumeIndicatorFrames
                 elif event.key in controls['mute']:
                     volume = 0
+                    if volumeIndicatorFrames >= len(volumeIndicatorPosCurve):
+                        volumeIndicatorFrames = 0
+                    elif volumeIndicatorPosCurve[volumeIndicatorFrames] == 100:
+                        volumeIndicatorFrames = volumeIndicatorPosCurve.index(100)
+                    elif volumeIndicatorFrames > len(volumeIndicatorPosCurve)-volumeIndicatorPosCurve[::-1].index(100):
+                        volumeIndicatorFrames = len(volumeIndicatorPosCurve)-volumeIndicatorFrames
 
                 if event.key in controls['scale 1']:
                     setScale(1)
@@ -892,7 +914,7 @@ while replay:
                 if (not paused) and running:
                     pos = _pos
                     age = _age
-                    sized = pygame.transform.scale(particle, ((scoreParticleCurve[age]*0.01)*particle.get_width(),(scoreParticleCurve[age]*0.01)*particle.get_height()))
+                    sized = pygame.transform.scale(particle, ((scoreParticleSizeCurve[age]*0.01)*particle.get_width(),(scoreParticleSizeCurve[age]*0.01)*particle.get_height()))
                     if pos[0] == 'center':
                         pos = (screen.get_width()//2,pos[1])
                     if pos[1] == 'center':
@@ -928,8 +950,30 @@ while replay:
 
         if paused and running:
             screen.blit(paused_overlay,(0+2,0+10))
+
+        if running:
+            if volumeIndicatorFrames < len(volumeIndicatorPosCurve):
+                volumeIndicatorFrame = pygame.Surface((80,30), pygame.SRCALPHA)
+                volumeIndicatorFrame.fill((0,0,0,128))
+                volumeIndicatorFrame.blit(volumeText,(16,20))
+                for _i in range(1,11):
+                    i = round(0.1*_i,1)
+                    bar = pygame.Surface((4,_i), pygame.SRCALPHA)
+                    if volume >= i:
+                        bar.fill((255,255,255,255))
+                    else:
+                        bar.fill((255,255,255,0))
+                    volumeIndicatorFrame.blit(bar,(10+(6*(_i-1)),15-_i),special_flags=pygame.BLEND_RGBA_ADD)
+                screen.blit(volumeIndicatorFrame,(screen.get_width()//2-40,0.4*volumeIndicatorPosCurve[volumeIndicatorFrames]-30))
+            volumeIndicatorFrames += 1
+            if volumeIndicatorFrames < 0:
+                volumeIndicatorFrames = 0
+            elif volumeIndicatorFrames >= len(volumeIndicatorPosCurve):
+                volumeIndicatorFrames = len(volumeIndicatorPosCurve)
+
         if not running:
             screen.blit(death_overlay,(0+2,0+10))
+        
         display_size = display.get_size()
         scaled = pygame.transform.scale(screen, (display_size[0]+(4*scale),display_size[1]+(20*scale)))
         shake = 0
