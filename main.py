@@ -80,6 +80,7 @@ controls = {
     'reset': [pygame.K_r],
     'quit': [pygame.K_ESCAPE],
     'toggle shake': [pygame.K_s],
+    'toggle particles': [pygame.K_p],
     'toggle ghost': [pygame.K_g],
     'toggle colour': [pygame.K_h],
     'toggle fps': [pygame.K_j],
@@ -137,6 +138,7 @@ linesCleared = 0
 shakeFrames = 0
 softShakeFrames = 0
 doShakes = True
+doParticles = True
 
 scoreParticles = []
 spreadParticles = []
@@ -583,6 +585,7 @@ while replay:
     shakeFrames = 0
     softShakeFrames = 0
     doShakes = True
+    doParticles = True  
 
     scoreParticles = []
     spreadParticles = []
@@ -672,6 +675,8 @@ while replay:
                     show_ghost = not show_ghost
                 if event.key in controls['toggle shake']:
                     doShakes = not doShakes
+                if event.key in controls['toggle particles']:
+                    doParticles = not doParticles
                 if (not paused) and (not AREpaused) and event.key in controls['left rotate']:
                     currentShape.rotate(-1)
                     i = True
