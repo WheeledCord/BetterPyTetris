@@ -873,13 +873,12 @@ while replay:
             if c != '':
                 running = False
                 break
-        if running:
-            screen.blit(nextShape.gui_sprite,(191+2,95+10))
-            if holdShape != None:
-                screen.blit(holdShape.gui_sprite,(191+2,151+10))
-            if show_ghost:
-                ghostShape.draw()
-            currentShape.draw()
+        screen.blit(nextShape.gui_sprite,(191+2,95+10))
+        if holdShape != None:
+            screen.blit(holdShape.gui_sprite,(191+2,151+10))
+        if show_ghost:
+            ghostShape.draw()
+        currentShape.draw()
         layer3 = pygame.Surface((256,224), pygame.SRCALPHA)
         for id,pos in {'T':(26,85),'J':(26,100),'Z':(26,117),'O':(29,133),'S':(26,149),'L':(26,164),'I':(24,184)}.items():
             layer3.blit(all_shapes[id].stat_sprite,pos)
