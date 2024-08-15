@@ -19,11 +19,11 @@ EQUATIONS = None
 
 msg = ''
 if len(history) > 0:
-    msg = 'Or type history to choose from previous graphs.'
+    msg = 'Or type \'history\' or \'h\' to choose from previous graphs.'
 inp = enterbox(msg,'Please input the width below.',strip=True)
 if inp == None:
     exit()
-if len(history) > 1 and inp.lower() == 'history':
+if len(history) > 1 and inp.lower() in ['history','h']:
     choice = choicebox('','Please select a previous graph.',[f'{item['name']}: {item['graph_size']}, {str(item['EQUATIONS']).replace('\'','')}' for item in history])
     if choice == None:
         exit()
@@ -35,7 +35,7 @@ if len(history) > 1 and inp.lower() == 'history':
                 WIDTH = item['WIDTH']
                 EQUATIONS = item['EQUATIONS']
                 break
-elif len(history) == 1 and inp.lower() == 'history':
+elif len(history) == 1 and inp.lower() in ['history','h']:
     choice = choicebox('','Please select a previous graph.',[*[f'{item['name']}: {item['graph_size']}, {str(item['EQUATIONS']).replace('\'','')}' for item in history],'Cancel'])
     if choice == None or choice == 'Cancel':
         exit()
@@ -163,7 +163,7 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.KEYDOWN:
-            if inp == 'history' and event.key == pygame.K_d:
+            if inp.lower() in ['history','h'] and event.key == pygame.K_d:
                 if boolbox('',f'Are you sure you want to delete \'{name}\' from history?'):
                     for i,item in enumerate(history):
                         if item['name'] == name:
@@ -177,7 +177,7 @@ while running:
                 if event.key == pygame.K_ESCAPE:
                     running = False
     pygame.display.flip()
-if inp != 'history':
+if not inp.lower() in ['history','h']:
     name = enterbox('','Please input the curve name below.',strip=True)
     if name == None:
         exit()
@@ -185,18 +185,21 @@ if inp != 'history':
         name = name.replace(char,'')
 if save:
     e = False
-    if inp == 'history':
+    if inp.lower() in ['history','h']:
         e = boolbox(f'Current name: \'{name}\'','Do you want to save this curve under a different name?')
         if e == True:
-            name = enterbox('','Please input the curve name below.',strip=True)
+            name = enterbox('Or type \'output_graph\' to save under the main directory.','Please input the curve name below.',strip=True)
             if name == None:
                 e = None
+            elif name == 'output_graph':
+                pygame.image.save(graph,name+'.png')
+                exit()
             else:
                 for char in '<>:"/\\|?*':
                     name = name.replace(char,'')
     if e != None:
-        pygame.image.save(graph,'images/curves/'+name+'.png')
-if inp != 'history':
+        pygame.image.save(graph,osPath.dirname(osPath.dirname(__file__))+'\\images\\curves\\'+name+'.png')
+if not inp.lower() in ['history','h']:
     i = 0
     name_edited = True
     while name_edited:
@@ -210,4 +213,3 @@ if inp != 'history':
 with open('graph_history.json','w') as f:
     jsonDump(history,f)
     f.close()
-pygame.quit()
