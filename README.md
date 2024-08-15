@@ -14,11 +14,12 @@ we made tetris in pygame. pain insued.
 **Pause:** enter\
 **Reset:** r\
 **Quit:** escape\
-**Toggle Ghost:** g\
-**Toggle Particles:** p\
 **Toggle Drop Shaking:** s\
+**Toggle Pivot Indicator:** d\
+**Toggle FPS Display:** f\
+**Toggle Ghost:** g\
 **Toggle Colour Change:** h\
-**Toggle FPS Display:** j\
+**Toggle Particles:** j\
 **Scale 1:** 1\
 **Scale 2:** 2\
 **Scale 3:** 3\

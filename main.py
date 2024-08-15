@@ -79,12 +79,12 @@ controls = {
     'pause': [pygame.K_RETURN],
     'reset': [pygame.K_r],
     'quit': [pygame.K_ESCAPE],
-    'toggle pivot indicator': [pygame.K_d],
     'toggle shake': [pygame.K_s],
-    'toggle particles': [pygame.K_p],
+    'toggle pivot indicator': [pygame.K_d],
+    'toggle fps': [pygame.K_f],
     'toggle ghost': [pygame.K_g],
     'toggle colour': [pygame.K_h],
-    'toggle fps': [pygame.K_f],
+    'toggle particles': [pygame.K_j],
     'scale 1': [pygame.K_1],
     'scale 2': [pygame.K_2],
     'scale 3': [pygame.K_3],
@@ -336,8 +336,6 @@ class Shapes:
         def getCenterPiece(self):
             for piece in self.pieces:
                 if piece.id == self.centerPieceId:
-                    if showPivot:
-                        piece.sprite.image.blit(pivot_sprite,(0,0))
                     return piece
 
         def rotate(self,dir):
@@ -374,10 +372,15 @@ class Shapes:
                 self.y += (oldCenterPieceLocalY - centerPiece.localy)
             
         def draw(self):
+            if showPivot and self.getCenterPiece():
+                self.getCenterPiece().sprite.image.blit(pivot_sprite,(0,0))
+            elif self.getCenterPiece():
+                self.getCenterPiece().sprite.image = pygame.image.load(f'images/pieces/{self.piece_sprite}.png').convert_alpha()
             for piece in self.pieces:
                 piece.sprite.rect.x = 96+(8*(self.x+piece.localx))+2
                 piece.sprite.rect.y = 40+(8*(self.y+piece.localy))+10
             self.piecesGroup.draw(screen)
+            
             
         def stamp(self):
             for piece in self.pieces:
