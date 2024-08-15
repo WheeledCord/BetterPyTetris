@@ -1,8 +1,8 @@
 import pygame
 from os import environ as osEnviron
 
-WIDTH = 800
-EQUATIONS = ['y=0.1*x']
+WIDTH = 400
+EQUATIONS = ['y=0.5*x']
 
 # Initialize Pygame
 pygame.init()
@@ -68,8 +68,8 @@ ii = 0
 for y in range(checkered_graph.get_height()):
     for x in range(checkered_graph.get_width()):
         color = (0,0,0,0)
-        bc = (0,0,0,128)
-        wc = (255,255,255,128)
+        bc = (64,64,64,128)
+        wc = (192,192,192,128)
         if i == 0:
             if ii == 0:
                 color = wc
