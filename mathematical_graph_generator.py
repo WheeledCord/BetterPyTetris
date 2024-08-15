@@ -1,8 +1,8 @@
 import pygame
 from os import environ as osEnviron
 
-WIDTH = 30
-EQUATIONS = ['y=x^(2)/8.4','y=20-x','y=10+(10/(10-x))','y=10+(10/(-10+x))']
+WIDTH = 800
+EQUATIONS = ['y=0.1*x']
 
 # Initialize Pygame
 pygame.init()
@@ -52,8 +52,6 @@ for i,y in enumerate(graph_data):
 HEIGHT = max(graph_data)
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
-print(graph_data)
-
 def draw_graph():
     screen.fill((255, 255, 255))  # Clear screen with white
     # Draw the graph
@@ -64,18 +62,45 @@ def draw_graph():
 
 draw_graph()
 graph = screen.copy()
+checkered_graph = pygame.Surface(graph.get_size(),pygame.SRCALPHA)
+i = 0
+ii = 0
+for y in range(checkered_graph.get_height()):
+    for x in range(checkered_graph.get_width()):
+        color = (0,0,0,0)
+        bc = (0,0,0,128)
+        wc = (255,255,255,128)
+        if i == 0:
+            if ii == 0:
+                color = wc
+                ii = 1
+            else:
+                color = bc
+                ii = 0
+        else:
+            if ii == 0:
+                color = bc
+                ii = 1
+            else:
+                color = wc
+                ii = 0
+        pygame.draw.line(checkered_graph,color,(x,y),(x,y),1)
+    if i == 0:
+        i = 1
+    else:
+        i = 0
 
 new_size = (0,0)
 scale = 0
 mode = max(WIDTH,HEIGHT)
 if mode == WIDTH:
-    scale = MAX_WIDTH / WIDTH
-    new_size = (MAX_WIDTH,round(scale*HEIGHT))
+    scale = MAX_WIDTH // WIDTH
 else:
-    scale = MAX_HEIGHT / HEIGHT
-    new_size = (round(scale*WIDTH),MAX_HEIGHT)
+    scale = MAX_HEIGHT // HEIGHT
+new_size = (scale*WIDTH,scale*HEIGHT)
 screen = pygame.display.set_mode(new_size)
 screen.blit(pygame.transform.scale(graph,new_size),(0,0))
+screen.blit(pygame.transform.scale(checkered_graph,new_size),(0,0))
 
 # Main loop
 running = True
