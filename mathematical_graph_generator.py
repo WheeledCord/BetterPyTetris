@@ -117,7 +117,7 @@ while running:
             running = False
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_s:
-                pygame.image.save(graph,f'images/curves/{enterbox('','Please input the curve name below.',strip=True)}.png')
+                pygame.image.save(graph,'images/curves/'+enterbox('','Please input the curve name below.',strip=True)+'.png')
             running = False
     pygame.display.flip()
 pygame.quit()
