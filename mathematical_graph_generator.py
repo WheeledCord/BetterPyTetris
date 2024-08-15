@@ -1,9 +1,58 @@
 import pygame
-from easygui import enterbox
+from easygui import enterbox, choicebox, boolbox
 from os import environ as osEnviron
+from os import path as osPath
+from json import load as jsonLoad
+from json import dump as jsonDump
 
-WIDTH = int(enterbox('','Please input the width below.',strip=True))
-EQUATIONS = enterbox('Seperate by comma and space, e.g: \'y=1x, y=2x\'','Please input the equations below.',strip=True).split(', ')
+history = []
+if osPath.isfile('graph_history.json'):
+    history = jsonLoad(open('graph_history.json','r'))
+else:
+    with open('graph_history.json','w') as f:
+        jsonDump(history,f)
+        f.close()
+
+name = None
+WIDTH = None
+EQUATIONS = None
+
+msg = ''
+if len(history) > 0:
+    msg = 'Or type history to choose from previous graphs.'
+inp = enterbox(msg,'Please input the width below.',strip=True)
+if inp == None:
+    exit()
+if len(history) > 1 and inp.lower() == 'history':
+    choice = choicebox('','Please select a previous graph.',[f'{item['name']}: {item['graph_size']}, {str(item['EQUATIONS']).replace('\'','')}' for item in history])
+    if choice == None:
+        exit()
+    else:
+        choice = str(choice.split(':')[0]).removeprefix('Name: ')
+        for item in history:
+            if item['name'] == choice:
+                name = choice
+                WIDTH = item['WIDTH']
+                EQUATIONS = item['EQUATIONS']
+                break
+elif len(history) == 1 and inp.lower() == 'history':
+    choice = choicebox('','Please select a previous graph.',[*[f'{item['name']}: {item['graph_size']}, {str(item['EQUATIONS']).replace('\'','')}' for item in history],'Cancel'])
+    if choice == None or choice == 'Cancel':
+        exit()
+    else:
+        choice = str(choice.split(':')[0]).removeprefix('Name: ')
+        for item in history:
+            if item['name'] == choice:
+                name = choice
+                WIDTH = item['WIDTH']
+                EQUATIONS = item['EQUATIONS']
+                break
+else:
+    WIDTH = int(inp)
+    e = enterbox('Seperate by comma and space, e.g: \'y=1x, y=2x\'','Please input the equations below.',strip=True)
+    if e == None:
+        exit()
+    EQUATIONS = e.split(', ')
 # Initialize Pygame
 pygame.init()
 HEIGHT = 0
@@ -94,30 +143,86 @@ for y in range(checkered_graph.get_height()):
     else:
         i = 0
 
-new_size = (0,0)
-scale = 0
-mode = max(WIDTH,HEIGHT)
-if mode == WIDTH:
-    scale = max(MAX_WIDTH // WIDTH,1)
-else:
-    scale = max(MAX_HEIGHT // HEIGHT,1)
-new_size = (scale*WIDTH,scale*HEIGHT)
+# new_size = (0,0)
+# scale = 0
+# mode = max(WIDTH,HEIGHT)
+# if mode == WIDTH:
+#     scale = max(MAX_WIDTH // WIDTH,1)
+# else:
+#     scale = max(MAX_HEIGHT // HEIGHT,1)
+# print(mode == WIDTH)
+# print(MAX_WIDTH)
+# print(WIDTH)
+# print(MAX_WIDTH / WIDTH)
+# new_size = (scale*WIDTH,scale*HEIGHT)
+# screen = pygame.display.set_mode(new_size)
+# screen.blit(pygame.transform.scale(graph,new_size),(0,0))
+# screen.blit(pygame.transform.scale(checkered_graph,new_size),(0,0))
+scale_x = MAX_WIDTH / WIDTH
+scale_y = MAX_HEIGHT / HEIGHT
+scale = min(scale_x, scale_y)
+new_size = (int(WIDTH * scale), int(HEIGHT * scale))
 screen = pygame.display.set_mode(new_size)
-screen.blit(pygame.transform.scale(graph,new_size),(0,0))
-screen.blit(pygame.transform.scale(checkered_graph,new_size),(0,0))
+screen.blit(pygame.transform.scale(graph, new_size), (0, 0))
+screen.blit(pygame.transform.scale(checkered_graph, new_size), (0, 0))
 
-print(f'graph size: {len(graph_data)}x{max(graph_data)}')
+graph_size = f'{WIDTH}x{max(graph_data)}'
+print(f'graph size: {graph_size}')
 
 # Main loop
 running = True
+save = False
 while running:
     clock.tick(60)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_s:
-                pygame.image.save(graph,'images/curves/'+enterbox('','Please input the curve name below.',strip=True)+'.png')
-            running = False
+            if inp == 'history' and event.key == pygame.K_d:
+                if boolbox('',f'Are you sure you want to delete \'{name}\' from history?'):
+                    for i,item in enumerate(history):
+                        if item['name'] == name:
+                            history.pop(i)
+                            running = False
+                            break
+            else:
+                if event.key == pygame.K_s:
+                    save = True
+                    running = False
+                if event.key == pygame.K_ESCAPE:
+                    running = False
     pygame.display.flip()
+if inp != 'history':
+    name = enterbox('','Please input the curve name below.',strip=True)
+    if name == None:
+        exit()
+    for char in '<>:"/\\|?*':
+        name = name.replace(char,'')
+if save:
+    e = False
+    if inp == 'history':
+        e = boolbox(f'Current name: \'{name}\'','Do you want to save this curve under a different name?')
+        if e == True:
+            name = enterbox('','Please input the curve name below.',strip=True)
+            if name == None:
+                e = None
+            else:
+                for char in '<>:"/\\|?*':
+                    name = name.replace(char,'')
+    if e != None:
+        pygame.image.save(graph,'images/curves/'+name+'.png')
+if inp != 'history':
+    i = 0
+    name_edited = True
+    while name_edited:
+        name_edited = False
+        for item in history:
+            if item['name'] == name:
+                name = name+' ('+str(i)+')'
+                name_edited = True
+                i += 1
+    history.append({'name':name,'WIDTH':WIDTH,'EQUATIONS':EQUATIONS,'graph_size':graph_size})
+with open('graph_history.json','w') as f:
+    jsonDump(history,f)
+    f.close()
 pygame.quit()
