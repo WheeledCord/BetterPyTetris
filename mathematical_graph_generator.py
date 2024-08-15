@@ -143,21 +143,6 @@ for y in range(checkered_graph.get_height()):
     else:
         i = 0
 
-# new_size = (0,0)
-# scale = 0
-# mode = max(WIDTH,HEIGHT)
-# if mode == WIDTH:
-#     scale = max(MAX_WIDTH // WIDTH,1)
-# else:
-#     scale = max(MAX_HEIGHT // HEIGHT,1)
-# print(mode == WIDTH)
-# print(MAX_WIDTH)
-# print(WIDTH)
-# print(MAX_WIDTH / WIDTH)
-# new_size = (scale*WIDTH,scale*HEIGHT)
-# screen = pygame.display.set_mode(new_size)
-# screen.blit(pygame.transform.scale(graph,new_size),(0,0))
-# screen.blit(pygame.transform.scale(checkered_graph,new_size),(0,0))
 scale_x = MAX_WIDTH / WIDTH
 scale_y = MAX_HEIGHT / HEIGHT
 scale = min(scale_x, scale_y)
