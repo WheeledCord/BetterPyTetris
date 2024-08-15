@@ -4,8 +4,7 @@ from os import environ as osEnviron
 from os import path as osPath
 from json import load as jsonLoad
 from json import dump as jsonDump
-from re import sub as regexReplace
-from re import findall as regexFindAll
+import math
 
 history = []
 if osPath.isfile('graph_history.json'):
@@ -19,7 +18,7 @@ name = None
 WIDTH = None
 EQUATIONS = None
 VARIABLES = {}
-FUNCTIONS = {}
+# FUNCTIONS = {}
 
 msg = ''
 if len(history) > 0:
@@ -40,7 +39,7 @@ if len(history) > 1 and inp.lower() in ['history','h']:
                 EQUATIONS = item['EQUATIONS']
                 break
 elif len(history) == 1 and inp.lower() in ['history','h']:
-    choice = choicebox('','Please select a previous graph.',[*[f'{item['name']}: {item['graph_size']}, {str(item['EQUATIONS']).replace('\'','')}' for item in history],'Cancel'])
+    choice = choicebox('','Please select a previous graph.',[*[f'{item['name']}: {item['graph_size']}, {[f'{var}={val}' for var,val in item['VARIABLES'].items()]}, {str(item['EQUATIONS']).replace('\'','')}' for item in history],'Cancel'])
     if choice == None or choice == 'Cancel':
         exit()
     else:
@@ -56,21 +55,22 @@ else:
     e = enterbox('Seperate by comma and space, e.g: \'a=1, b=2\'','Please input the variables below.',strip=True)
     if e == None:
         exit()
-    vars = e.split(', ')
-    for var in vars:
-        VARIABLES[var.split('=')[0]] = var.split('=')[1]
-    for var,val in VARIABLES.items():
-        for _var,_val in VARIABLES.items():
-            VARIABLES[var] = val.replace(_var,_val)
-    e = enterbox('Seperate by comma and space, e.g: \'B(x)=1+x, C(x,a)=x+a\'','Please input the functions below.',strip=True)
-    if e == None:
-        exit()
-    funcs = e.split(', ')
-    for func in funcs:
-        FUNCTIONS[func.split('(')[0]] = [func.split('=')[1],func.split('(')[1].split(')')[0].split(',')]
-    for func,funcVal in FUNCTIONS.items():
-        for _var,_val in VARIABLES.items():
-            FUNCTIONS[func][0] = funcVal[0].replace(_var,_val)
+    if e != '':
+        vars = e.split(', ')
+        for var in vars:
+            VARIABLES[var.split('=')[0]] = var.split('=')[1]
+        for var,val in VARIABLES.items():
+            for _var,_val in VARIABLES.items():
+                VARIABLES[var] = val.replace(_var,_val)
+    # e = enterbox('Seperate by comma and space, e.g: \'B(x)=1+x, C(x,a)=x+a\'','Please input the functions below.',strip=True)
+    # if e == None:
+    #     exit()
+    # funcs = e.split(', ')
+    # for func in funcs:
+    #     FUNCTIONS[func.split('(')[0]] = [func.split('=')[1],func.split('(')[1].split(')')[0].split(',')]
+    # for func,funcVal in FUNCTIONS.items():
+    #     for _var,_val in VARIABLES.items():
+    #         FUNCTIONS[func][0] = funcVal[0].replace(_var,_val)
     e = enterbox('Seperate by comma and space, e.g: \'y=1x, y=2x\'','Please input the equations below.',strip=True)
     if e == None:
         exit()
@@ -89,14 +89,14 @@ printed_errors = []
 def run_equations(x: int):
     global printed_errors
     y_values = []
-    for equation in EQUATIONS:
-        equation = equation.replace('^', '**')
+    for _equation in EQUATIONS:
+        equation = _equation.replace('^', '**')
         equation = equation.replace('x', str(x))
         for var,val in VARIABLES.items():
             equation = equation.replace(var,'('+val.replace('x',str(x))+')')
-        for func,[funcVal,funcArgs] in FUNCTIONS.items():
-            exit()
-        equation = equation.replace('{', '(').replace('}', ')').replace('\\cdot','*')
+        # for func,[funcVal,funcArgs] in FUNCTIONS.items():
+        #     exit()
+        equation = equation.replace('{', '(').replace('}', ')').replace('\\cdot','*').replace('\\left', '(').replace('\\right', ')').replace('pi','math.pi').replace('sin','math.sin')
         try:
             y = eval(equation.split('=')[1])
             if y == float('inf'):
@@ -109,11 +109,12 @@ def run_equations(x: int):
                 y_values.append(y)
         except ZeroDivisionError:
             return 'inf'
-        except:
-            if not equation in printed_errors:
+        except Exception as e:
+            if not _equation in printed_errors:
                 print(f"Error evaluating equation: {equation}")
-                printed_errors.append(equation)
-                y_values.append(0)
+                print(e)
+                printed_errors.append(_equation)
+            y_values.append(0)
     return int(max(y_values))
 
 graph_data = []
@@ -167,7 +168,7 @@ for y in range(checkered_graph.get_height()):
 
 scale_x = MAX_WIDTH / WIDTH
 scale_y = MAX_HEIGHT / HEIGHT
-scale = min(scale_x, scale_y)
+scale = max(min(scale_x, scale_y),1)
 new_size = (int(WIDTH * scale), int(HEIGHT * scale))
 screen = pygame.display.set_mode(new_size)
 screen.blit(pygame.transform.scale(graph, new_size), (0, 0))
