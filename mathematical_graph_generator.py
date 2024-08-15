@@ -1,7 +1,8 @@
+import enum
 import pygame
 
 WIDTH = 30
-EQUATIONS = ['y=x^(2)/8.4']
+EQUATIONS = ['y=x^(2)/8.4','y=20-x','y=10+(10/(10-x))','y=10+(10/(-10+x))']
 
 # Initialize Pygame
 HEIGHT = 1000
@@ -13,16 +14,24 @@ clock = pygame.time.Clock()
 def run_equations(x: int):
     y_values = []
     for equation in EQUATIONS:
-        # Replace "^" with "**" for Python exponentiation and evaluate the equation
         equation = equation.replace('^', '**')
         equation = equation.replace('x', str(x))
-        equation = equation.replace('\cdot', '*')
-        equation = equation.replace('{', '(').replace('}', ')')
-        # Evaluate the equation using Python's eval function
-        y = eval(equation.split('=')[1])
-        y_values.append(y)
+        try:
+            y = eval(equation.split('=')[1])
+            if y == float('inf'):
+                return 'inf'
+            elif y == float('-inf'):
+                y_values.append(0)
+            elif y != y:
+                y_values.append(0)
+            else:
+                y_values.append(y)
+        except ZeroDivisionError:
+            return 'inf'
+        except Exception as e:
+            print(f"Error evaluating equation: {e}")
+            return 'inf'
     
-    # Return the maximum y value (or adjust based on your needs)
     return int(max(y_values))
 
 graph_data = []
@@ -30,6 +39,9 @@ graph_data = []
 # Run the simulation and collect data
 for x in range(WIDTH):
     graph_data.append(run_equations(x))
+for i,y in enumerate(graph_data):
+    if y == 'inf':
+        graph_data[i] = max([item for item in graph_data if item != 'inf'])
 HEIGHT = max(graph_data)
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
