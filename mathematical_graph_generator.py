@@ -24,7 +24,7 @@ def run_equations(x: int):
             equation = equation.replace('x', str(WIDTH-x))
         elif equation.split('=')[0] == 'y':
             equation = equation.replace('x', str(x))
-        equation = equation.replace('{', '(').replace('}', ')')
+        equation = equation.replace('{', '(').replace('}', ')').replace('\\cdot','*')
         try:
             y = eval(equation.split('=')[1])
             if y == float('inf'):
