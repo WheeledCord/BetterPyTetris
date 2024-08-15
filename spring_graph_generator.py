@@ -2,29 +2,29 @@ import pygame
 
 # Constants
 
-# # -- Hard Drop -- #
-# # Spring constant for the physics simulation
-# SPRING_CONSTANT = 100
-# # Damping factor to simulate energy loss
-# DAMPING = 0.135
-# # Mass of the object
-# MASS = 1.0
-# # Time step for the simulation
-# TIME_STEP = 0.1
-# # Maximum displacement (10px up or down)
-# MAX_DISPLACEMENT = 10
-
-# -- Soft Drop -- #
+# -- Hard Drop -- #
 # Spring constant for the physics simulation
 SPRING_CONSTANT = 100
 # Damping factor to simulate energy loss
-DAMPING = 0.18
+DAMPING = 0.25
 # Mass of the object
 MASS = 1.0
 # Time step for the simulation
 TIME_STEP = 0.1
 # Maximum displacement (10px up or down)
-MAX_DISPLACEMENT = 4
+MAX_DISPLACEMENT = 10
+
+# -- Soft Drop -- #
+# # Spring constant for the physics simulation
+# SPRING_CONSTANT = 100
+# # Damping factor to simulate energy loss
+# DAMPING = 0.18
+# # Mass of the object
+# MASS = 1.0
+# # Time step for the simulation
+# TIME_STEP = 0.1
+# # Maximum displacement (10px up or down)
+# MAX_DISPLACEMENT = 4
 
 # Initialize Pygame
 WIDTH, HEIGHT = 1000, 1+2*MAX_DISPLACEMENT

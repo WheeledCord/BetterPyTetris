@@ -1,4 +1,5 @@
 # ~ Imports ~ #
+from re import S
 import pygame
 from random import shuffle,randrange
 from os import environ as osEnviron
@@ -34,6 +35,7 @@ paused_overlay = pygame.image.load('images/gui/paused.png').convert_alpha()
 death_overlay = pygame.image.load('images/gui/gameOver.png').convert_alpha()
 lvl_up_particle = pygame.image.load('images/gui/lvlUpParticle.png').convert_alpha()
 volumeText = pygame.image.load('images/gui/volume.png').convert_alpha()
+pivot_sprite = pygame.image.load(f'images/pieces/pivot.png').convert_alpha()
 pygame.mixer.music.load('sounds/music.mp3')
 
 sounds = {
@@ -45,12 +47,6 @@ sounds = {
     'death':pygame.mixer.Sound('sounds/death.mp3'),
     'fall':pygame.mixer.Sound('sounds/fall.mp3')
 }
-pieces = [
-    pygame.image.load('images/pieces/0.png').convert_alpha(),
-    pygame.image.load('images/pieces/1.png').convert_alpha(),
-    pygame.image.load('images/pieces/2.png').convert_alpha(),
-    pygame.image.load('images/pieces/ghost.png').convert_alpha()
-]
 
 def getGraphValues(image_path):
     img = pygame.image.load('images/curves/'+image_path)
@@ -83,11 +79,12 @@ controls = {
     'pause': [pygame.K_RETURN],
     'reset': [pygame.K_r],
     'quit': [pygame.K_ESCAPE],
+    'toggle pivot indicator': [pygame.K_d],
     'toggle shake': [pygame.K_s],
     'toggle particles': [pygame.K_p],
     'toggle ghost': [pygame.K_g],
     'toggle colour': [pygame.K_h],
-    'toggle fps': [pygame.K_j],
+    'toggle fps': [pygame.K_f],
     'scale 1': [pygame.K_1],
     'scale 2': [pygame.K_2],
     'scale 3': [pygame.K_3],
@@ -148,6 +145,8 @@ scoreParticles = []
 spreadParticles = []
 
 volumeIndicatorFrames = len(volumeIndicatorPosCurve)-1
+
+showPivot = True
 
 score = 0
 lines = 0
@@ -254,7 +253,7 @@ class SpreadParticles:
             self.y += self.y_vel * self.gravity
             colored = self.img.copy()
             colored.fill(self.color,special_flags=pygame.BLEND_RGB_MULT)
-            sized = pygame.transform.scale(colored, ((spreadParticleSizeCurve[self.age]*0.01)*self.img.get_width(),(spreadParticleSizeCurve[age]*0.01)*self.img.get_height()))
+            sized = pygame.transform.scale(colored, ((spreadParticleSizeCurve[self.age]*0.01)*self.img.get_width(),(spreadParticleSizeCurve[self.age]*0.01)*self.img.get_height()))
             surface.blit(sized,(self.x-(sized.get_width()//2),self.y-(sized.get_height()//2))) 
     def __init__(self,amount,start_x,start_y,gravity_scale,img,color=(255,255,255)) -> None:
         self.particles = []
@@ -336,7 +335,10 @@ class Shapes:
         
         def getCenterPiece(self):
             for piece in self.pieces:
-                if piece.id == self.centerPieceId: return piece
+                if piece.id == self.centerPieceId:
+                    if showPivot:
+                        piece.sprite.image.blit(pivot_sprite,(0,0))
+                    return piece
 
         def rotate(self,dir):
             oldCenterPieceLocalX = None
@@ -681,6 +683,8 @@ while replay:
                     setScale(4)
                 if event.key in controls['toggle colour']:
                     coloured = not coloured
+                if event.key in controls['toggle pivot indicator']:
+                    showPivot = not showPivot
                 if event.key in controls['toggle fps']:
                     show_fps = not show_fps
                 if event.key  in controls['pause']:
