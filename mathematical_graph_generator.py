@@ -1,14 +1,14 @@
 import pygame
+from easygui import enterbox
 from os import environ as osEnviron
 
-WIDTH = 400
-EQUATIONS = ['y=0.5*x']
-
+WIDTH = int(enterbox('','Please input the width below.',strip=True))
+EQUATIONS = enterbox('Seperate by comma and space, e.g: \'y=1x, y=2x\'','Please input the equations below.',strip=True).split(', ')
 # Initialize Pygame
 pygame.init()
 HEIGHT = 0
-MAX_WIDTH = pygame.display.Info().current_w - 300
-MAX_HEIGHT = pygame.display.Info().current_h - 300
+MAX_WIDTH = pygame.display.Info().current_w - 200
+MAX_HEIGHT = pygame.display.Info().current_h - 200
 osEnviron['SDL_VIDEO_CENTERED'] = '1'
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Mathematical Graph")
@@ -20,7 +20,11 @@ def run_equations(x: int):
     y_values = []
     for equation in EQUATIONS:
         equation = equation.replace('^', '**')
-        equation = equation.replace('x', str(x))
+        if equation.split('=')[0] == 'iy':
+            equation = equation.replace('x', str(WIDTH-x))
+        elif equation.split('=')[0] == 'y':
+            equation = equation.replace('x', str(x))
+        equation = equation.replace('{', '(').replace('}', ')')
         try:
             y = eval(equation.split('=')[1])
             if y == float('inf'):
@@ -67,9 +71,9 @@ i = 0
 ii = 0
 for y in range(checkered_graph.get_height()):
     for x in range(checkered_graph.get_width()):
-        color = (0,0,0,0)
-        bc = (64,64,64,128)
-        wc = (192,192,192,128)
+        color = None
+        bc = (64,64,64,64)
+        wc = (192,192,192,64)
         if i == 0:
             if ii == 0:
                 color = wc
@@ -94,13 +98,15 @@ new_size = (0,0)
 scale = 0
 mode = max(WIDTH,HEIGHT)
 if mode == WIDTH:
-    scale = MAX_WIDTH // WIDTH
+    scale = max(MAX_WIDTH // WIDTH,1)
 else:
-    scale = MAX_HEIGHT // HEIGHT
+    scale = max(MAX_HEIGHT // HEIGHT,1)
 new_size = (scale*WIDTH,scale*HEIGHT)
 screen = pygame.display.set_mode(new_size)
 screen.blit(pygame.transform.scale(graph,new_size),(0,0))
 screen.blit(pygame.transform.scale(checkered_graph,new_size),(0,0))
+
+print(f'graph size: {len(graph_data)}x{max(graph_data)}')
 
 # Main loop
 running = True
@@ -111,7 +117,7 @@ while running:
             running = False
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_s:
-                pygame.image.save(graph,'output_graph.png')
+                pygame.image.save(graph,f'images/curves/{enterbox('','Please input the curve name below.',strip=True)}.png')
             running = False
     pygame.display.flip()
 pygame.quit()
