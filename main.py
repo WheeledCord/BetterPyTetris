@@ -1,5 +1,4 @@
 # ~ Imports ~ #
-from re import S
 import pygame
 from random import shuffle,randrange
 from os import environ as osEnviron
