@@ -4,6 +4,8 @@ from os import environ as osEnviron
 from os import path as osPath
 from json import load as jsonLoad
 from json import dump as jsonDump
+from re import sub as regexReplace
+from re import findall as regexFindAll
 
 history = []
 if osPath.isfile('graph_history.json'):
@@ -16,6 +18,8 @@ else:
 name = None
 WIDTH = None
 EQUATIONS = None
+VARIABLES = {}
+FUNCTIONS = {}
 
 msg = ''
 if len(history) > 0:
@@ -24,7 +28,7 @@ inp = enterbox(msg,'Please input the width below.',strip=True)
 if inp == None:
     exit()
 if len(history) > 1 and inp.lower() in ['history','h']:
-    choice = choicebox('','Please select a previous graph.',[f'{item['name']}: {item['graph_size']}, {str(item['EQUATIONS']).replace('\'','')}' for item in history])
+    choice = choicebox('','Please select a previous graph.',[f'{item['name']}: {item['graph_size']}, {[f'{var}={val}' for var,val in item['VARIABLES'].items()]}, {str(item['EQUATIONS']).replace('\'','')}' for item in history])
     if choice == None:
         exit()
     else:
@@ -49,6 +53,24 @@ elif len(history) == 1 and inp.lower() in ['history','h']:
                 break
 else:
     WIDTH = int(inp)
+    e = enterbox('Seperate by comma and space, e.g: \'a=1, b=2\'','Please input the variables below.',strip=True)
+    if e == None:
+        exit()
+    vars = e.split(', ')
+    for var in vars:
+        VARIABLES[var.split('=')[0]] = var.split('=')[1]
+    for var,val in VARIABLES.items():
+        for _var,_val in VARIABLES.items():
+            VARIABLES[var] = val.replace(_var,_val)
+    e = enterbox('Seperate by comma and space, e.g: \'B(x)=1+x, C(x,a)=x+a\'','Please input the functions below.',strip=True)
+    if e == None:
+        exit()
+    funcs = e.split(', ')
+    for func in funcs:
+        FUNCTIONS[func.split('(')[0]] = [func.split('=')[1],func.split('(')[1].split(')')[0].split(',')]
+    for func,funcVal in FUNCTIONS.items():
+        for _var,_val in VARIABLES.items():
+            FUNCTIONS[func][0] = funcVal[0].replace(_var,_val)
     e = enterbox('Seperate by comma and space, e.g: \'y=1x, y=2x\'','Please input the equations below.',strip=True)
     if e == None:
         exit()
@@ -69,10 +91,11 @@ def run_equations(x: int):
     y_values = []
     for equation in EQUATIONS:
         equation = equation.replace('^', '**')
-        if equation.split('=')[0] == 'iy':
-            equation = equation.replace('x', str(WIDTH-x))
-        elif equation.split('=')[0] == 'y':
-            equation = equation.replace('x', str(x))
+        equation = equation.replace('x', str(x))
+        for var,val in VARIABLES.items():
+            equation = equation.replace(var,'('+val.replace('x',str(x))+')')
+        for func,[funcVal,funcArgs] in FUNCTIONS.items():
+            exit()
         equation = equation.replace('{', '(').replace('}', ')').replace('\\cdot','*')
         try:
             y = eval(equation.split('=')[1])
@@ -91,7 +114,6 @@ def run_equations(x: int):
                 print(f"Error evaluating equation: {equation}")
                 printed_errors.append(equation)
                 y_values.append(0)
-    
     return int(max(y_values))
 
 graph_data = []
@@ -174,6 +196,9 @@ while running:
                 if event.key == pygame.K_s:
                     save = True
                     running = False
+                if event.key == pygame.K_o:
+                    pygame.image.save(graph,'output_graph.png')
+                    exit()
                 if event.key == pygame.K_ESCAPE:
                     running = False
     pygame.display.flip()
@@ -188,12 +213,9 @@ if save:
     if inp.lower() in ['history','h']:
         e = boolbox(f'Current name: \'{name}\'','Do you want to save this curve under a different name?')
         if e == True:
-            name = enterbox('Or type \'output_graph\' to save under the main directory.','Please input the curve name below.',strip=True)
+            name = enterbox('','Please input the curve name below.',strip=True)
             if name == None:
                 e = None
-            elif name == 'output_graph':
-                pygame.image.save(graph,name+'.png')
-                exit()
             else:
                 for char in '<>:"/\\|?*':
                     name = name.replace(char,'')

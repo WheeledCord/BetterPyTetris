@@ -1,1 +1,1 @@
-[{"name": "moveShapeAnim", "WIDTH": 20, "EQUATIONS": ["iy=1.26^{x}-1"], "graph_size": "20x100"}]
+[{"name": "moveShapeAnim", "WIDTH": 20, "EQUATIONS": ["y=1.26^{(-(x-20))}-1"], "VARIABLES": [], "FUNCTIONS": [], "graph_size": "20x100"}, {"name": "", "WIDTH": 20, "EQUATIONS": ["y = 1.26^(-(x - 3)) - 1"], "graph_size": "20x1"}]
