@@ -1,1 +1,1 @@
-[{"name": "moveShapeAnim", "WIDTH": 20, "EQUATIONS": ["y=1.26^{(-(x-20))}-1"], "graph_size": "20x100"}]
+{"Spring Test 1": [{"T": "60", "O": "10", "M": "10", "m": "1", "B": "1"}, {"u": "(x-\\left(\\frac{\\frac{T}{O}}{2}\\right))/(\\left(T-\\frac{\\frac{T}{O}}{2}\\right)-\\left(\\frac{\\frac{T}{O}}{2}\\right))", "F": "\\min\\left((1-u)^{2}*M+2*(1-u)*u*B+u^{2}*m,M\\right)"}, [["F*\\sin\\left(\\frac{2\\cdot\\pi\\cdot\\left(0.5O\\right)\\cdot x}{T}\\right)", "Fill", [128, 0, 64]], ["F", "Line", [233, 22, 96]]], "Layered", null, null, 60]}
