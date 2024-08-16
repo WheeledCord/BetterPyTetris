@@ -134,9 +134,7 @@ if historyMode == 'Select Previous Graph':
             msgbox(f'There is only one previous graph, selecting \'{inp}\'.','Mathematical Graph - Select Previous Graph')
             break
         else:
-            choices = []
-            for k in history.keys():
-                choices.append(k)
+            choices = sorted(list(history.keys()))
             inp = choicebox('Please select a previous graph.','Mathematical Graph - Select Previous Graph',choices=choices)
             if inp in history.keys():
                 name = inp
@@ -323,16 +321,14 @@ screen = pygame.display.set_mode(new_size)
 screen.blit(pygame.transform.scale(graph, new_size), (0, 0))
 screen.blit(pygame.transform.scale(checkered_graph, new_size), (0, 0))
 
-running = True
-while running:
+while True:
     clock.tick(60)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            running = False
+            exit()
         if event.type == pygame.KEYDOWN:
             if event.key in [pygame.K_o]:
                 pygame.image.save(graph,'output_graph.png')
-                exit()
             if event.key in [pygame.K_s]:
                 if ccbox('Do you want to save this graph?','Save this graph?'):
                     history[name] = (constants,expressions,y_expressions,y_expressions_mode,y_expressions_max_mode,y_expressions_max_color,WIDTH)
@@ -346,5 +342,14 @@ while running:
                         jsonDump(history,f)
                         f.close()
             if event.key == pygame.K_ESCAPE:
-                running = False
+                exit()
     pygame.display.flip()
+
+
+#Todo:
+"""
+Add option to display only certain lines during display mode,
+Add option to change colors during display mode,
+Display thumbnails of each graph during previous graph selection,
+
+"""
