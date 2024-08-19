@@ -351,5 +351,7 @@ while True:
 Add option to display only certain lines during display mode,
 Add option to change colors during display mode,
 Display thumbnails of each graph during previous graph selection,
+Fix max mode,
+x axis mirroring should take highest y or lowest -y
 Maybe: Add option to edit constants during display mode,
 """
