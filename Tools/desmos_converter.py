@@ -1,4 +1,3 @@
-import tkinter.colorchooser
 from latex2sympy2 import latex2sympy
 import math
 import pygame
@@ -468,5 +467,6 @@ while True:
 
 #Todo:
 """
+add res option (e.g. res=1 by default, if res = 0.1 then each pixel is 0.1 across on the grid rather than 1)
 cool idea, no clue how to do: Display thumbnails of each graph during saved graph selection
 """
