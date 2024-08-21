@@ -174,6 +174,7 @@ def make_graph():
     osEnviron['SDL_VIDEO_CENTERED'] = '1'
     screen = pygame.display.set_mode(new_size)
     checkered_graph = pygame.transform.scale(checkered_graph, screen.get_size())
+    pygame.display.flip()
 
 
 while True:
