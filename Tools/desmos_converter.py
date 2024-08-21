@@ -81,17 +81,21 @@ clock = pygame.time.Clock()
 
 show_checker = True
 
-def draw_graph(data,mode,color):
-    # Draw the graph
-    for x in range(WIDTH):
-        if mode == 'Fill':
-            pygame.draw.line(screen, color, (x, XAXIS-data[x]), (x, HEIGHT), 1)
-        elif mode == 'Line':
-            try:
-                nextData = data[x+1]
-            except:
-                nextData = data[x]
-            pygame.draw.line(screen, color, (x, XAXIS-data[x]), (x+1, XAXIS-nextData), 1)
+def draw_graph(data,mode,color,visibility):
+    if visibility != None:
+        surf = pygame.Surface(screen.get_size(),pygame.SRCALPHA)
+        for x in range(WIDTH):
+            if mode == 'Fill':
+                pygame.draw.line(surf, color, (x, XAXIS-data[x]), (x, HEIGHT), 1)
+            elif mode == 'Line':
+                try:
+                    nextData = data[x+1]
+                except:
+                    nextData = data[x]
+                pygame.draw.line(surf, color, (x, XAXIS-data[x]), (x+1, XAXIS-nextData), 1)
+        if visibility == True:
+            surf.set_alpha(128)
+        screen.blit(surf,(0,0))
 
 graph_datas = None
 checkered_graph = None
@@ -101,7 +105,7 @@ def make_graph():
     global graph_datas,XAXIS,HEIGHT,screen,graph,scale,checkered_graph
     graph_datas = []
     for (exp,mode,color,visibility) in y_expressions:
-        if visibility:
+        if visibility != None:
             graph_data = []
             parsed = parse_desmos(WIDTH,constants,expressions,[exp])
             for y in parsed:
@@ -109,7 +113,7 @@ def make_graph():
                     graph_data.append(round(y))
                 except:
                     graph_data.append(str(y))
-            graph_datas.append([graph_data,mode,color])
+            graph_datas.append([graph_data,mode,color,visibility])
     highest_val = max(0,0,*[max([v for v in g[0] if not v in ['inf','-inf']]) for g in graph_datas])
     lowest_val = min(0,0,*[min([v for v in g[0] if not v in ['inf','-inf']]) for g in graph_datas])
     furthest_val = highest_val
@@ -135,7 +139,7 @@ def make_graph():
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     screen.fill((255, 255, 255))
     for g in graph_datas:
-        draw_graph(g[0],g[1],g[2])
+        draw_graph(g[0],g[1],g[2],g[3])
     graph = screen.copy()
 
     checkered_graph = pygame.Surface(graph.get_size(),pygame.SRCALPHA)
@@ -244,9 +248,9 @@ while True:
                     if reMatch(r'^-?(\d*\.\d+|\d+\.\d*|\d+)$',match.groups()[1]):
                         constants[match.groups()[0]]=match.groups()[1]
                     else:
-                        msgbox('Invalid input, please try again.','Mathematical Graph - Input Expressions')
+                        msgbox('Invalid input, please try again.','Mathematical Graph - Input Constants')
                 else:
-                    msgbox('Invalid input, please try again.','Mathematical Graph - Input Expressions')
+                    msgbox('Invalid input, please try again.','Mathematical Graph - Input Constants')
             else:
                 break
         while True:
@@ -277,9 +281,9 @@ while True:
                         color = None
                         while color == None:
                             color = colorchooser.askcolor(title='Mathematical Graph - Choose y= Expression Draw Color',color=(0,0,0))[0]
-                        y_expressions.append((exp,mode,color,True))
+                        y_expressions.append((exp,mode,color,False))
                     except:
-                        msgbox('Invalid input, please try again.','Mathematical Graph - Input Expressions')
+                        msgbox('Invalid input, please try again.','Mathematical Graph - Input y= Expressions')
                 else:
                     msgbox('Invalid input, please try again.',f'Mathematical Graph - Input y= Expressions')
             else:
@@ -378,7 +382,14 @@ while True:
                                             editing = False
                                         else:
                                             edit_constant = edit_constant.split(':')[0]
-                                            inp = integerbox(f'Please input the new value of {edit_constant}.\n(Old value: {constants[edit_constant]})',f'Mathematical Graph - Edit Constant {edit_constant}',default=constants[edit_constant],lowerbound=None,upperbound=None)
+                                            inp = 'unset'
+                                            while inp == 'unset':
+                                                inp = enterbox(f'Please input the new value of {edit_constant}.\n(Old value: {constants[edit_constant]})',f'Mathematical Graph - Edit Constant {edit_constant}',default=constants[edit_constant],strip=True)
+                                                try:
+                                                    if inp != None:
+                                                        inp = float(inp)
+                                                except:
+                                                    msgbox('Invalid input, please try again.',f'Mathematical Graph - Edit Constant {edit_constant}')
                                             if inp != None:
                                                 constants[edit_constant] = str(inp)
                                                 make_graph()
@@ -404,7 +415,7 @@ while True:
                                             while editing_line:
                                                 choices = ['Edit Color','Edit Draw Mode','Back']
                                                 if len(y_expressions) > 1:
-                                                    choices.insert(0,'Toggle Visibility')
+                                                    choices.insert(0,'Cycle Visibility')
                                                 editing_attribute = indexbox('What would you like to edit?',f'Mathematical Graph - Edit Line \'y={y_expressions[edit_line][0]}\'',choices)
                                                 if editing_attribute != None:
                                                     editing_attribute = choices[editing_attribute]
@@ -421,8 +432,13 @@ while True:
                                                                 mode = indexbox('Select a draw mode below.',f'Mathematical Graph - Edit Line \'y={y_expressions[edit_line][0]}\' Draw Mode',choices)
                                                             y_expressions[edit_line][1] = choices[mode]
                                                             make_graph()
-                                                        elif editing_attribute == 'Toggle Visibility':
-                                                            y_expressions[edit_line][3] = not y_expressions[edit_line][3]
+                                                        elif editing_attribute == 'Cycle Visibility':
+                                                            if y_expressions[edit_line][3] == None:
+                                                                y_expressions[edit_line][3] = False
+                                                            elif y_expressions[edit_line][3] == False:
+                                                                y_expressions[edit_line][3] = True
+                                                            elif y_expressions[edit_line][3] == True:
+                                                                y_expressions[edit_line][3] = None
                                                             make_graph()
                                                     else:
                                                         break
@@ -447,12 +463,10 @@ while True:
         if mouse_pos.x > 0 and mouse_pos.y > 0 and mouse_pos.x < screen.get_width() and mouse_pos.y < screen.get_height():
             mouse_pos = round((mouse_pos/scale)-(0.5,0.5))
             pygame.display.set_caption(f'Mathematical Graph - (x:{int(mouse_pos.x)},y:{int(XAXIS-mouse_pos.y)})')
-        else:
-            pygame.display.set_caption(f'Mathematical Graph')
         pygame.display.flip()
 
 
 #Todo:
 """
-Display thumbnails of each graph during saved graph selection
+cool idea, no clue how to do: Display thumbnails of each graph during saved graph selection
 """
