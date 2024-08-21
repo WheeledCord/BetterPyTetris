@@ -174,6 +174,10 @@ def make_graph():
     osEnviron['SDL_VIDEO_CENTERED'] = '1'
     screen = pygame.display.set_mode(new_size)
     checkered_graph = pygame.transform.scale(checkered_graph, screen.get_size())
+    screen.fill((255, 255, 255))
+    screen.blit(pygame.transform.scale(graph, screen.get_size()), (0, 0))
+    if show_checker:
+        screen.blit(checkered_graph, (0, 0))
     pygame.display.flip()
 
 
