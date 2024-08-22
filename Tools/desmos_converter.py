@@ -113,21 +113,33 @@ def make_graph():
                 except:
                     graph_data.append(str(y))
             graph_datas.append([graph_data,mode,color,visibility])
-    highest_val = max(0,0,*[max([v for v in g[0] if not v in ['inf','-inf']]) for g in graph_datas])
-    lowest_val = min(0,0,*[min([v for v in g[0] if not v in ['inf','-inf']]) for g in graph_datas])
+    highest_val = max(0,*[0,*[max([0,*[v for v in g[0] if not v in ['inf','-inf']]]) for g in graph_datas]])
+    lowest_val = min(0,*[0,*[min([0,*[v for v in g[0] if not v in ['inf','-inf']]]) for g in graph_datas]])
     furthest_val = highest_val
     if lowest_val < 0:
         furthest_val = max(highest_val,-1*lowest_val)
     if lowest_val < 0:
         if highest_val == 0:
             HEIGHT = furthest_val
-            XAXIS = -1
+            if any([[v for v in g[0] if v == 0] for g in graph_datas]):
+                XAXIS = 0
+                HEIGHT += 1
+            else:
+                XAXIS = -1
         else:
             HEIGHT = furthest_val*2+1
             XAXIS = furthest_val
     else:
         HEIGHT = furthest_val
         XAXIS = HEIGHT
+        if any([[v for v in g[0] if v == 0] for g in graph_datas]):
+            HEIGHT += 1
+            XAXIS = HEIGHT-1
+        else:
+            XAXIS = HEIGHT
+    if HEIGHT == 0:
+        HEIGHT = 1
+        XAXIS = 0
     for i,g in enumerate(graph_datas):
         for ii,v in enumerate(g[0]):
             if v == 'inf':
@@ -469,4 +481,5 @@ while True:
 """
 add res option (e.g. res=1 by default, if res = 0.1 then each pixel is 0.1 across on the grid rather than 1)
 cool idea, no clue how to do: Display thumbnails of each graph during saved graph selection
+dont allow x,y, or e as vafriable names
 """
