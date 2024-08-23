@@ -1,11 +1,12 @@
 # ~ Imports ~ #
 import pygame
+import sys
 from random import shuffle,randrange
-from os import environ as osEnviron
-from os import path as osPath
+from os import environ as osEnviron, path as osPath, execv
 from copy import deepcopy
 from json import load as jsonLoad
 from json import dump as jsonDump
+from subprocess import run as subprocessRun
 
 # Inits
 pygame.init()
@@ -128,7 +129,6 @@ right_collided = False
 running = True
 closed = False
 paused = False
-reset = False
 coloured = True
 show_fps = False
 volume = 1.0
@@ -596,7 +596,6 @@ while replay:
     holding_input = False
     holding_down = False
     running = True
-    reset = False
     closed = False
     paused = False
     AREpaused = False
@@ -643,7 +642,7 @@ while replay:
     timers['fall'].activate()
     timers['move'].deactivate()
     timers['soft down'].deactivate()
-    while running and (not reset):
+    while running:
         for id,sound in sounds.items():
             sound.set_volume(volume)
         pygame.mixer.music.set_volume(volume)   
@@ -715,7 +714,7 @@ while replay:
                     else:
                         pygame.mixer.music.unpause()
                 if event.key in controls['reset']:
-                    reset = True
+                    execv(sys.executable, ["python"]+sys.argv)
                 if event.key in controls['quit']:
                     closed = True
                     replay = False
@@ -1143,10 +1142,9 @@ while replay:
     # Window closed logic
     else:
         pygame.mixer.music.stop()
-        if not reset:
-            sounds['death'].play()
+        sounds['death'].play()
         game_over = True
-        while (game_over and not closed) and not reset:
+        while game_over and not closed:
             for event in pygame.event.get():
                 # Detect window closed
                 if event.type == pygame.QUIT:
@@ -1156,7 +1154,7 @@ while replay:
                     if event.key in controls['quit']:
                         closed = True
                         replay = False
-                    if event.key == pygame.K_RETURN or event.key in controls['reset']:
+                    if event.key == pygame.K_RETURN:
                         game_over = False
 else:
     print('crashed :(') # we love how this is still here lmao
