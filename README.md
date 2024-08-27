@@ -20,6 +20,7 @@ we made tetris in pygame. pain insued.
 **Toggle Ghost:** g\
 **Toggle Colour Change:** h\
 **Toggle Particles:** j\
+**Toggle High Contrast Mode:** k\
 **Scale 1:** 1\
 **Scale 2:** 2\
 **Scale 3:** 3\

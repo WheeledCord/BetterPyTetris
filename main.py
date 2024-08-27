@@ -85,6 +85,7 @@ controls = {
     'toggle ghost': [pygame.K_g],
     'toggle colour': [pygame.K_h],
     'toggle particles': [pygame.K_j],
+    'toggle bg': [pygame.K_k],
     'scale 1': [pygame.K_1],
     'scale 2': [pygame.K_2],
     'scale 3': [pygame.K_3],
@@ -145,6 +146,7 @@ spreadParticles = []
 volumeIndicatorFrames = len(volumeIndicatorPosCurve)-1
 
 showPivot = True
+altBg = False
 
 holdAnimFrames = -1
 holdAnim_mode = 'current to hold'
@@ -267,7 +269,7 @@ class SpreadParticles:
             self.particles.append(self.Particle(start_x,start_y,randrange(-4,4),randrange(-2,0),gravity_scale,img,color))
     def draw(self,surface):
         for particle in self.particles:
-            if particle.age >= 89:
+            if particle.age >= len(spreadParticleSizeCurve)-1:
                 self.particles.pop(self.particles.index(particle))
             else:
                 particle.draw(surface)
@@ -684,6 +686,8 @@ while running:
                 show_ghost = not show_ghost
             if event.key in controls['toggle shake']:
                 doShakes = not doShakes
+            if event.key in controls['toggle bg']:
+                altBg = not altBg
             if event.key in controls['toggle particles']:
                 doParticles = not doParticles
             if (not paused) and (not AREpaused) and (holdAnimFrames < 0 and nextAnimFrames < 0) and event.key in controls['left rotate'] and currentShape.getCenterPiece():
@@ -886,22 +890,24 @@ while running:
     layer3 = pygame.Surface((256,224), pygame.SRCALPHA)
     for id,pos in {'T':(26,85),'J':(26,100),'Z':(26,117),'O':(29,133),'S':(26,149),'L':(26,164),'I':(24,184)}.items():
         layer3.blit(all_shapes[id].stat_sprite,pos)
-    if lvl == 0 or not coloured:
-        layer1 = pygame.image.load('images/gui/bg.png').convert_alpha()
-        layer1.fill(hsv_to_rgb(300,41,100,0), special_flags=pygame.BLEND_RGB_MULT)
-        layer2 = pygame.image.load('images/gui/bg1.png').convert_alpha()
-        layer2.fill(hsv_to_rgb(300,20,100,0), special_flags=pygame.BLEND_RGB_MULT)
-        screen.blit(layer1,(0,0))
-        screen.blit(layer2,(0,0))
-        screen.blit(layer3,(0+2,0+10))
+    if altBg:
+        screen.blit(pygame.image.load('images/gui/altBg.png').convert_alpha(),(0,0))
     else:
-        screen.blit(pygame.image.load('images/gui/bg.png').convert_alpha(),(0,0))
-        screen.fill(hsv_to_rgb(overflowNum(lvl*12,360),41,100,0), special_flags=pygame.BLEND_RGB_MULT)
-        layer2 = pygame.image.load('images/gui/bg1.png').convert_alpha()
-        layer2.fill(hsv_to_rgb(overflowNum(lvl*12,360),20,100,0), special_flags=pygame.BLEND_RGB_MULT)
-        screen.blit(layer2,(0,0))
-        layer3.fill(hsv_to_rgb(overflowNum(lvl*12,360),20,100,0), special_flags=pygame.BLEND_RGB_MULT)
-        screen.blit(layer3,(0+2,0+10))
+        if lvl == 0 or not coloured:
+            layer1 = pygame.image.load('images/gui/bg.png').convert_alpha()
+            layer1.fill(hsv_to_rgb(300,41,100,0), special_flags=pygame.BLEND_RGB_MULT)
+            layer2 = pygame.image.load('images/gui/bg1.png').convert_alpha()
+            layer2.fill(hsv_to_rgb(300,20,100,0), special_flags=pygame.BLEND_RGB_MULT)
+            screen.blit(layer1,(0,0))
+            screen.blit(layer2,(0,0))
+        else:
+            screen.blit(pygame.image.load('images/gui/bg.png').convert_alpha(),(0,0))
+            screen.fill(hsv_to_rgb(overflowNum(lvl*12,360),41,100,0), special_flags=pygame.BLEND_RGB_MULT)
+            layer2 = pygame.image.load('images/gui/bg1.png').convert_alpha()
+            layer2.fill(hsv_to_rgb(overflowNum(lvl*12,360),20,100,0), special_flags=pygame.BLEND_RGB_MULT)
+            screen.blit(layer2,(0,0))
+            layer3.fill(hsv_to_rgb(overflowNum(lvl*12,360),20,100,0), special_flags=pygame.BLEND_RGB_MULT)
+    screen.blit(layer3,(0+2,0+10))
     screen.blit(pygame.image.load('images/gui/staticText.png').convert_alpha(),(0+2,0+10))
     writeNums((152+2,16+10),lines,3,screen)
     writeNums((192+2,32+10),score,6,screen)
@@ -1112,4 +1118,5 @@ else:
                 if event.key in controls['quit']:
                     exit()
                 if event.key == pygame.K_RETURN or event.key in controls['reset']:
+                    print(sys.argv)
                     execv(sys.executable, ["python"]+['"'+v+'"' for v in sys.argv])
