@@ -1,5 +1,6 @@
 # ~ Imports ~ #
 import pygame
+import threading
 import sys
 from random import shuffle,randrange
 from os import environ as osEnviron, path as osPath, execv
@@ -7,11 +8,111 @@ from copy import deepcopy
 from json import load as jsonLoad
 from json import dump as jsonDump
 
+from easygui import enterbox,msgbox
+from supabase import create_client, Client
+
+import hashlib
+
+url = "https://vqlylnfgxeimreedequm.supabase.co"
+try:
+    with open('supabase_key.txt','r') as f:
+        key = f.read()
+        f.close()
+except FileNotFoundError:
+    raise FileNotFoundError('Supabase Key file not found, If you aren\'t Solomon or Vincent, you shouldn\'t be running the source :)')
+supabase: Client = create_client(url, key)
+
+# Get player name
+uname = ''
+msg = ''
+while uname == '':
+    inp = enterbox('This will be used to save your score.\nYour name must be between 1 and 3 characters, and can\'t contain special characters.'+msg,'Please input a name below.',strip=True)
+    msg = ''
+    if inp is None:
+        sys.exit()
+    elif len(inp) > 3:
+        msg = '\n\nYour name can\'t be longer than 3 characters.'
+    elif inp == '':
+        msg = '\n\nYou must input a name.'
+    else:
+        for c in inp.lower():
+            if c not in '1234567890_-qwertyuiopasdfghjklzxcvbnm ':
+                msg = '\n\nYour name can\'t contain special characters.'
+                break
+    if msg == '':
+        uname = inp.lower()
+del msg
+
+# Get player password
+allowed_chars = '1234567890_-qwertyuiopasdfghjklzxcvbnm `~!@#$%^&*()+=,.<>/?;:'
+password = ''
+salted_password = ''
+msg = ''
+while password == '':
+    inp = enterbox('Your password must be between 1 and 24 characters, and can\'t contain special characters.'+msg,'Please input a password below.',strip=True)
+    msg = ''
+    if inp is None:
+        sys.exit()
+    elif len(inp) > 24:
+        msg = '\n\nYour password can\'t be longer than 24 characters.'
+    elif inp == '':
+        msg = '\n\nYou must input a password.'
+    else:
+        for c in inp.lower():
+            if c not in allowed_chars:
+                msg = '\n\nYour password can only contain the following characters:\n'+allowed_chars
+                break
+    if msg == '':
+        password = inp
+del msg
+
+
+salt = "980432894ceb2d86167649f4453b6aba"
+salted_password = hashlib.sha256((salt + password).encode()).hexdigest()
+
+try:
+    response = (
+        supabase.table("leaderboard")
+        .select("password")
+        .eq("username", uname)
+        .execute()
+    )
+    if salted_password != response.model_dump()['data'][0]['password']:
+        msgbox('Password was incorrect.','Password was incorrect.')
+        sys.exit()
+except Exception as e:
+    response = (
+        supabase.table("leaderboard")
+        .insert({"username": uname, "score": 0, "lines": 0, "password": salted_password})
+        .execute()
+    )
+
+def update_leaderboard():
+    try:
+        (
+            supabase.table("leaderboard")
+            .update({'score':score})
+            .eq('username',uname)
+            .lt('score',score)
+            .execute()
+        )
+        (
+            supabase.table("leaderboard")
+            .update({'lines':lines})
+            .eq('username',uname)
+            .lt('lines',lines)
+            .execute()
+        )
+    except:
+        pass
+    timers['update leaderboard'].activate()
+
+
 # Inits
 pygame.init()
 clock = pygame.time.Clock()
 
-# Create window
+## Create window
 (display_width,display_height) = (256,224)
 
 scale = 0
@@ -23,7 +124,7 @@ def setScale(_scale: int):
     pygame.display.set_mode((scale*display_width, scale*display_height))
 
 display = pygame.display.set_mode((display_width, display_height))
-pygame.display.set_caption('PyTetris')
+pygame.display.set_caption(f'PyTetris - {uname.title()}')
 icon = pygame.image.load('images/gui/icon.png').convert_alpha()
 pygame.display.set_icon(icon)
 setScale(3)
@@ -579,7 +680,8 @@ class Timer:
 timers = {
     'fall': Timer(speed),
     'move': Timer(16),
-    'soft down': Timer(2)
+    'soft down': Timer(2),
+    'update leaderboard': Timer(1*60)
 }
 # - Timers - #
 
@@ -608,6 +710,7 @@ pygame.mixer.music.play(-1)
 timers['fall'].activate()
 timers['move'].deactivate()
 timers['soft down'].deactivate()
+timers['update leaderboard'].activate()
 while running:
     for id,sound in sounds.items():
         sound.set_volume(volume)
@@ -1105,6 +1208,9 @@ while running:
             flash_stamps = []
             stamps = temp
             linesCleared = 0
+    if timers['update leaderboard'].finished:
+        upd_thr = threading.Thread(target=update_leaderboard)
+        upd_thr.start()
 # Window closed logic
 else:
     pygame.mixer.music.stop()
