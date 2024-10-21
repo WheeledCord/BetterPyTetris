@@ -12,100 +12,142 @@ from easygui import enterbox,msgbox
 from supabase import create_client, Client
 
 import hashlib
+import socket
 
-url = "https://vqlylnfgxeimreedequm.supabase.co"
-try:
-    with open('supabase_key.txt','r') as f:
-        key = f.read()
-        f.close()
-except FileNotFoundError:
-    raise FileNotFoundError('Supabase Key file not found, If you aren\'t Solomon or Vincent, you shouldn\'t be running the source :)')
-supabase: Client = create_client(url, key)
+def restart_main():
+    # Restart the application...
+    executable = sys.executable
+    executable_filename = osPath.split(executable)[1]
+    if executable_filename.lower().startswith('python'):
+        # application is running within a python interpreter
+        python = executable
+        execv(python, [python, ] + sys.argv)
+        pass
+    else:
+        # application is running as a standalone executable
+        # execv(executable, sys.argv)
+        # pass
+        msgbox('Sorry!\nThe restart feature is uh, not working great for the EXE build.\nDunno why, but surely you can take the time to open the game again yourself?','PyTetris - Oopsies')
+        sys.exit()
+    pass
 
-# Get player name
+
+def check_internet_connection():
+    remote_server = "www.google.com"
+    port = 80
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(5)
+    try:
+        sock.connect((remote_server, port))
+        return True
+    except socket.error:
+        return False
+    finally:
+        sock.close()
+
+online = check_internet_connection()
+supabase = None
+url = None
 uname = ''
-msg = ''
-while uname == '':
-    inp = enterbox('This will be used to save your score.\nYour name must be between 1 and 3 characters, and can\'t contain special characters.'+msg,'Please input a name below.',strip=True)
+if online:
+    url = "https://vqlylnfgxeimreedequm.supabase.co"
+    try:
+        with open('supabase_key.txt','r') as f:
+            key = f.read()
+            f.close()
+    except FileNotFoundError:
+        raise FileNotFoundError('Supabase key file not found, If you aren\'t Solomon or Vincent, you shouldn\'t be running the source :)')
+    supabase: Client = create_client(url, key)
+
+if online:
+    # Get player name
+    uname = ''
     msg = ''
-    if inp is None:
-        sys.exit()
-    elif len(inp) > 3:
-        msg = '\n\nYour name can\'t be longer than 3 characters.'
-    elif inp == '':
-        msg = '\n\nYou must input a name.'
-    else:
-        for c in inp.lower():
-            if c not in '1234567890_-qwertyuiopasdfghjklzxcvbnm ':
-                msg = '\n\nYour name can\'t contain special characters.'
+    while uname == '':
+        inp = enterbox('This will be used to save your score.\nYour name must be between 1 and 3 characters, and can\'t contain special characters.\nType \'offline\' to not login and save scores.'+msg,'Please input a name below.',strip=True)
+        msg = ''
+        if inp is None:
+            sys.exit()
+        elif len(inp) > 3:
+            if inp.lower() == 'offline':
+                online = False
                 break
-    if msg == '':
-        uname = inp.lower()
-del msg
-
-# Get player password
-allowed_chars = '1234567890_-qwertyuiopasdfghjklzxcvbnm `~!@#$%^&*()+=,.<>/?;:'
-password = ''
-salted_password = ''
-msg = ''
-while password == '':
-    inp = enterbox('Your password must be between 1 and 24 characters, and can\'t contain special characters.'+msg,'Please input a password below.',strip=True)
+            msg = '\n\nYour name can\'t be longer than 3 characters.'
+        elif inp == '':
+            msg = '\n\nYou must input a name.'
+        else:
+            for c in inp.lower():
+                if c not in '1234567890_-qwertyuiopasdfghjklzxcvbnm ':
+                    msg = '\n\nYour name can\'t contain special characters.'
+                    break
+        if msg == '':
+            uname = inp.lower()
+    del msg
+if online:
+    # Get player password
+    allowed_chars = '1234567890_-qwertyuiopasdfghjklzxcvbnm `~!@#$%^&*()+=,.<>/?;:'
+    password = ''
+    salted_password = ''
     msg = ''
-    if inp is None:
-        sys.exit()
-    elif len(inp) > 24:
-        msg = '\n\nYour password can\'t be longer than 24 characters.'
-    elif inp == '':
-        msg = '\n\nYou must input a password.'
-    else:
-        for c in inp.lower():
-            if c not in allowed_chars:
-                msg = '\n\nYour password can only contain the following characters:\n'+allowed_chars
-                break
-    if msg == '':
-        password = inp
-del msg
+    while password == '':
+        inp = enterbox('Your password must be between 1 and 24 characters, and can\'t contain special characters.'+msg,'Please input a password below.',strip=True)
+        msg = ''
+        if inp is None:
+            sys.exit()
+        elif len(inp) > 24:
+            msg = '\n\nYour password can\'t be longer than 24 characters.'
+        elif inp == '':
+            msg = '\n\nYou must input a password.'
+        else:
+            for c in inp.lower():
+                if c not in allowed_chars:
+                    msg = '\n\nYour password can only contain the following characters:\n'+allowed_chars
+                    break
+        if msg == '':
+            password = inp
+    del msg
 
 
-salt = "980432894ceb2d86167649f4453b6aba"
-salted_password = hashlib.sha256((salt + password).encode()).hexdigest()
+    salt = "980432894ceb2d86167649f4453b6aba"
+    salted_password = hashlib.sha256((salt + password).encode()).hexdigest()
 
-try:
-    response = (
-        supabase.table("leaderboard")
-        .select("password")
-        .eq("username", uname)
-        .execute()
-    )
-    if salted_password != response.model_dump()['data'][0]['password']:
-        msgbox('Password was incorrect.','Password was incorrect.')
-        sys.exit()
-except Exception as e:
-    response = (
-        supabase.table("leaderboard")
-        .insert({"username": uname, "score": 0, "lines": 0, "password": salted_password})
-        .execute()
-    )
+    try:
+        response = (
+            supabase.table("leaderboard")
+            .select("password")
+            .eq("username", uname)
+            .execute()
+        )
+        if salted_password != response.model_dump()['data'][0]['password']:
+            msgbox('Password was incorrect.','Password was incorrect.')
+            sys.exit()
+    except Exception as e:
+        response = (
+            supabase.table("leaderboard")
+            .insert({"username": uname, "score": 0, "lines": 0, "password": salted_password})
+            .execute()
+        )
 
 def update_leaderboard():
-    try:
-        (
-            supabase.table("leaderboard")
-            .update({'score':score})
-            .eq('username',uname)
-            .lt('score',score)
-            .execute()
-        )
-        (
-            supabase.table("leaderboard")
-            .update({'lines':lines})
-            .eq('username',uname)
-            .lt('lines',lines)
-            .execute()
-        )
-    except:
-        pass
-    timers['update leaderboard'].activate()
+    if online:
+        try:
+            (
+                supabase.table("leaderboard")
+                .update({'score':score})
+                .eq('username',uname)
+                .lt('score',score)
+                .execute()
+            )
+            (
+                supabase.table("leaderboard")
+                .update({'lines':lines})
+                .eq('username',uname)
+                .lt('lines',lines)
+                .execute()
+            )
+        except:
+            pass
+        timers['update leaderboard'].activate()
 
 
 # Inits
@@ -124,7 +166,10 @@ def setScale(_scale: int):
     pygame.display.set_mode((scale*display_width, scale*display_height))
 
 display = pygame.display.set_mode((display_width, display_height))
-pygame.display.set_caption(f'PyTetris - {uname.title()}')
+if online:
+    pygame.display.set_caption(f'PyTetris - {uname.title()}')
+else:
+    pygame.display.set_caption('PyTetris')
 icon = pygame.image.load('images/gui/icon.png').convert_alpha()
 pygame.display.set_icon(icon)
 setScale(3)
@@ -293,12 +338,16 @@ def setTileonMap(x,y, value):
     except IndexError:
         return (x,y)
 
-def getTileonMap(x,y):
+def getTileonMap(x,y,map):
     try:
-        if y < 0 or x < 0:
+        if x < 0 or x >= 10:
             return 'OUT'
+        elif y >= 20:
+            return 'OUT'
+        elif y < 0:
+            return 'ABOVE'
         else:
-            return tileMap[y][x]
+            return map[y][x]
     except IndexError:
         return 'OUT'
     
@@ -429,7 +478,6 @@ class Shapes:
                 if c.isdigit():
                     piece = self.__piece(self.piece_sprite,c,x,y,self.id)
                     self.pieces.append(piece)
-                    self.piecesGroup.add(piece.sprite)
                     x += 1
                 elif c == ' ':
                     x += 1
@@ -488,6 +536,13 @@ class Shapes:
             for piece in self.pieces:
                 piece.sprite.rect.x = 96+(8*(self.x+piece.localx))+2
                 piece.sprite.rect.y = 40+(8*(self.y+piece.localy))+10
+                try:
+                    if self.x+piece.localx < 0 or self.x+piece.localx >= 10 or self.y+piece.localy < 0 or self.y+piece.localy >= 20:
+                        self.piecesGroup.remove(piece.sprite)
+                    else:
+                        self.piecesGroup.add(piece.sprite)
+                except:
+                    pass
             self.piecesGroup.draw(screen)
             
             
@@ -587,13 +642,14 @@ def getCollision():
             for piece in ghostShape.pieces:
                 x = ghostShape.x+piece.localx
                 y = ghostShape.y+piece.localy
-                tempMap[y][x] = 'x'
+                if x >= 0 and x < 10 and y >= 0 and y < 20:
+                    tempMap[y][x] = 'x'
             x = 0
             y = 0
             for row in tempMap:
                 for c in row:
                     if c == 'x':
-                        if not (tempMap[y+1][x] in 'x '):
+                        if getTileonMap(x,y+1,tempMap) not in ['x','','ABOVE']:
                             ghostCollided = True
                             break
                     x += 1
@@ -605,7 +661,8 @@ def getCollision():
     for piece in currentShape.pieces:
         x = currentShape.x+piece.localx
         y = currentShape.y+piece.localy
-        tempMap[y][x] = 'x'
+        if x >= 0 and x < 10 and y >= 0 and y < 20:
+            tempMap[y][x] = 'x'
     x = 0
     y = 0
     for row in tempMap:
@@ -614,21 +671,21 @@ def getCollision():
                 try:
                     if currentShape.y == (20-currentShape.height):
                             collided = True
-                    elif not (tempMap[y+1][x] in 'x '):
+                    elif getTileonMap(x,y+1,tempMap) not in ['x','','ABOVE']:
                         collided = True
                 except: collided = True
                 
                 try:
                     if currentShape.x <= 0:
                         left_collided = True
-                    elif not (tempMap[y][x-1] in 'x '):
+                    elif getTileonMap(x-1,y,tempMap) not in ['x','','ABOVE']:
                         left_collided = True
                 except: left_collided = True
 
                 try:
                     if currentShape.x >= 10-currentShape.width:
                         right_collided = True
-                    elif not (tempMap[y][x+1] in 'x '):
+                    elif getTileonMap(x+1,y,tempMap) not in ['x','','ABOVE']:
                         right_collided = True
                 except: right_collided = True
             x += 1
@@ -678,6 +735,7 @@ class Timer:
             self.deactivate()
 
 timers = {
+    'land': Timer(60),
     'fall': Timer(speed),
     'move': Timer(16),
     'soft down': Timer(2),
@@ -726,7 +784,7 @@ while running:
     for event in pygame.event.get():
         # Detect window closed
         if event.type == pygame.QUIT:
-            exit()
+            sys.exit()
         if event.type == pygame.KEYDOWN:
             if event.key in controls['volume up']:
                 volume = round(volume+0.1,1)
@@ -782,9 +840,9 @@ while running:
                 else:
                     pygame.mixer.music.unpause()
             if event.key in controls['reset']:
-                execv(sys.executable, ["python"]+['"'+v+'"' for v in sys.argv])
+                restart_main()
             if event.key in controls['quit']:
-                exit()
+                sys.exit()
             if event.key in controls['toggle ghost']:
                 show_ghost = not show_ghost
             if event.key in controls['toggle shake']:
@@ -798,9 +856,11 @@ while running:
                 i = True
                 out = False
                 for piece in currentShape.pieces:
-                    if getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) == 'OUT' or getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) != '':
+                    spot = getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy,tileMap)
+                    print(spot)
+                    if spot == 'OUT' or (spot not in ['ABOVE','']):
                         i = False
-                        out = getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) == 'OUT'
+                        out = spot == 'OUT'
                         break
                 if (not i) and out:
                     oldX = currentShape.x
@@ -817,7 +877,8 @@ while running:
                     if ii:
                         i = True
                         for piece in currentShape.pieces:
-                            if getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) == 'OUT' or getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) != '':
+                            spot = getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy,tileMap)
+                            if spot == 'OUT' or (spot not in ['ABOVE','']):
                                 i = False
                                 break
                         if not i:
@@ -833,9 +894,10 @@ while running:
                 i = True
                 out = False
                 for piece in currentShape.pieces:
-                    if getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) == 'OUT' or getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) != '':
+                    spot = getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy,tileMap)
+                    if spot == 'OUT' or (spot not in ['ABOVE','']):
                         i = False
-                        out = getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) == 'OUT'
+                        out = spot == 'OUT'
                         break
                 if (not i) and out:
                     oldX = currentShape.x
@@ -852,7 +914,8 @@ while running:
                     if ii:
                         i = True
                         for piece in currentShape.pieces:
-                            if getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) == 'OUT' or getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy) != '':
+                            spot = getTileonMap(currentShape.x+piece.localx,currentShape.y+piece.localy,tileMap)
+                            if spot == 'OUT' or (spot not in ['ABOVE','']):
                                 i = False
                                 break
                         if not i:
@@ -987,7 +1050,7 @@ while running:
         if holdShape != None:
             screen.blit(holdShape.gui_sprite,(191+2,151+10))
         if nextAnimFrames < 0:
-            if show_ghost:
+            if show_ghost and not AREpaused:
                 ghostShape.draw()
             currentShape.draw()
     layer3 = pygame.Surface((256,224), pygame.SRCALPHA)
@@ -1165,7 +1228,11 @@ while running:
         if score > 999999:
             score = 999999
 
-        if collided and (timers['fall'].finished or getInp('hard down')):
+        getCollision()
+        if collided and timers['land'].active == False and timers['land'].finished == False:
+            timers['land'].activate()
+        if collided and (timers['land'].finished or getInp('hard down')):
+            timers['land'].finished = False
             currentShape.stamp()
             sounds['place'].play()
             if not currentShape.id in stats.keys():
@@ -1184,7 +1251,7 @@ while running:
             holdCount = 0
             if getInp('soft down') or getInp('hard down'):
                 holding_down = True
-        elif timers['fall'].finished and (holdAnimFrames < 0 and nextAnimFrames < 0) and not ((not holding_down) and (getInp('soft down') or getInp('hard down'))):
+        elif timers['land'].active == False and (timers['fall'].finished and (holdAnimFrames < 0 and nextAnimFrames < 0) and not ((not holding_down) and (getInp('soft down') or getInp('hard down')))):
             currentShape.y += 1
             sounds['fall'].play()
             timers['fall'].duration = speed
@@ -1219,10 +1286,9 @@ else:
         for event in pygame.event.get():
             # Detect window closed
             if event.type == pygame.QUIT:
-                exit()
+                sys.exit()
             if event.type == pygame.KEYDOWN:
                 if event.key in controls['quit']:
-                    exit()
+                    sys.exit()
                 if event.key == pygame.K_RETURN or event.key in controls['reset']:
-                    print(sys.argv)
-                    execv(sys.executable, ["python"]+['"'+v+'"' for v in sys.argv])
+                    restart_main()
