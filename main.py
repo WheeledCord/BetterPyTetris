@@ -3,7 +3,7 @@ import pygame
 import threading
 import sys
 from random import shuffle,randrange
-from os import environ as osEnviron, path as osPath, execv
+from os import environ as osEnviron, path as osPath, execv,spawnl,P_NOWAIT
 from copy import deepcopy
 from json import load as jsonLoad
 from json import dump as jsonDump
@@ -21,10 +21,13 @@ def restart_main():
     if executable_filename.lower().startswith('python'):
         # application is running within a python interpreter
         python = executable
-        execv(python, [python, ] + sys.argv)
+        execv(python, [python, ] + [f'"{v}"' for i,v in enumerate(sys.argv) if i == 0])
         pass
     else:
         # application is running as a standalone executable
+        # spawnl(P_NOWAIT,        # flag
+        # sys.executable,               # programm
+        # sys.executable, "--startup")
         # execv(executable, sys.argv)
         # pass
         msgbox('Sorry!\nThe restart feature is uh, not working great for the EXE build.\nDunno why, but surely you can take the time to open the game again yourself?','PyTetris - Oopsies')
@@ -47,16 +50,11 @@ def check_internet_connection():
 
 online = check_internet_connection()
 supabase = None
-url = None
 uname = ''
+salted_password = ''
 if online:
     url = "https://vqlylnfgxeimreedequm.supabase.co"
-    try:
-        with open('supabase_key.txt','r') as f:
-            key = f.read()
-            f.close()
-    except FileNotFoundError:
-        raise FileNotFoundError('Supabase key file not found, If you aren\'t Solomon or Vincent, you shouldn\'t be running the source :)')
+    key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxbHlsbmZneGVpbXJlZWRlcXVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjkxMTg5MTksImV4cCI6MjA0NDY5NDkxOX0.oknDiMd1LzWLcvFlF7WKnyLmZMS7iST0468TKMPXE1I'
     supabase: Client = create_client(url, key)
 
 if online:
@@ -77,7 +75,7 @@ if online:
             msg = '\n\nYou must input a name.'
         else:
             for c in inp.lower():
-                if c not in '1234567890_-qwertyuiopasdfghjklzxcvbnm ':
+                if c not in '1234567890_-qwertyuiopasdfghjklzxcvbnm':
                     msg = '\n\nYour name can\'t contain special characters.'
                     break
         if msg == '':
@@ -106,45 +104,20 @@ if online:
         if msg == '':
             password = inp
     del msg
-
-
     salt = "980432894ceb2d86167649f4453b6aba"
     salted_password = hashlib.sha256((salt + password).encode()).hexdigest()
 
     try:
-        response = (
-            supabase.table("leaderboard")
-            .select("password")
-            .eq("username", uname)
-            .execute()
-        )
-        if salted_password != response.model_dump()['data'][0]['password']:
+        supabase.rpc('add_user', {'p_name': uname, 'p_password':salted_password}).execute()
+    except:
+        if supabase.rpc('check_password', {'p_name': uname, 'p_password': salted_password}).execute().data != True:
             msgbox('Password was incorrect.','Password was incorrect.')
             sys.exit()
-    except Exception as e:
-        response = (
-            supabase.table("leaderboard")
-            .insert({"username": uname, "score": 0, "lines": 0, "password": salted_password})
-            .execute()
-        )
 
 def update_leaderboard():
     if online:
         try:
-            (
-                supabase.table("leaderboard")
-                .update({'score':score})
-                .eq('username',uname)
-                .lt('score',score)
-                .execute()
-            )
-            (
-                supabase.table("leaderboard")
-                .update({'lines':lines})
-                .eq('username',uname)
-                .lt('lines',lines)
-                .execute()
-            )
+            supabase.rpc('update_scores_and_lines', {'p_name': uname, 'p_password': salted_password, 'p_score': score, 'p_lines': lines}).execute()
         except:
             pass
         timers['update leaderboard'].activate()

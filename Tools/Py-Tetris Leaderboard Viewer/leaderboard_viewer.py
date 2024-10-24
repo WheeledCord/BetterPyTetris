@@ -6,12 +6,7 @@ import pygame
 import sys
 
 url = "https://vqlylnfgxeimreedequm.supabase.co"
-try:
-    with open('supabase_key.txt','r') as f:
-        key = f.read()
-        f.close()
-except FileNotFoundError:
-    raise FileNotFoundError('Supabase Key file not found, If you aren\'t Solomon or Vincent, you shouldn\'t be running the source :)')
+key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxbHlsbmZneGVpbXJlZWRlcXVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjkxMTg5MTksImV4cCI6MjA0NDY5NDkxOX0.oknDiMd1LzWLcvFlF7WKnyLmZMS7iST0468TKMPXE1I'
 supabase: Client = create_client(url, key)
 
 # Inits
@@ -33,17 +28,14 @@ exit = False
 def dataloop():
     global data
     while not exit:
-        response = (
-            supabase.table("leaderboard")
-            .select("*")
-            .execute()
-        ).model_dump()['data']
-        new_data = {}
-        for row in response:
-            new_data[row['username']] = [row['score'],row['lines']]
-            if len([player for player in players if player.name == row['username']]) == 0:
-                Player(row['username'])
-        data = new_data
+        response = supabase.rpc('get_lb', {}).execute().data
+        if response != None:
+            new_data = {}
+            for row in response:
+                new_data[row['username']] = [row['score'],row['lines']]
+                if len([player for player in players if player.name == row['username']]) == 0:
+                    Player(row['username'])
+            data = new_data
         # time.sleep(1)
 
 def lerp(v1, v2, t):
