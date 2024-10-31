@@ -12,8 +12,9 @@ supabase: Client = create_client(url, key)
 
 valid_data = {}
 response = supabase.rpc('get_lb', {}).execute().data
-for row in response:
-    valid_data[row['username']] = [row['score'],row['lines']]
+if response != None:
+    for row in response:
+        valid_data[row['username']] = [row['score'],row['lines']]
 
 while True:
     response = supabase.rpc('get_lb', {}).execute().data

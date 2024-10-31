@@ -708,9 +708,9 @@ class Timer:
             self.deactivate()
 
 timers = {
-    'land': Timer(60),
+    # 'land': Timer(60),
     'fall': Timer(speed),
-    'move': Timer(16),
+    'move': Timer(8),
     'soft down': Timer(2),
     'update leaderboard': Timer(1*60)
 }
@@ -1202,10 +1202,10 @@ while running:
             score = 999999
 
         getCollision()
-        if collided and timers['land'].active == False and timers['land'].finished == False:
-            timers['land'].activate()
-        if collided and (timers['land'].finished or getInp('hard down')):
-            timers['land'].finished = False
+        # if collided and timers['land'].active == False and timers['land'].finished == False:
+        #     timers['land'].activate()
+        if collided and (timers['fall'].finished or getInp('hard down')):
+            # timers['land'].finished = False
             currentShape.stamp()
             sounds['place'].play()
             if not currentShape.id in stats.keys():
@@ -1224,7 +1224,7 @@ while running:
             holdCount = 0
             if getInp('soft down') or getInp('hard down'):
                 holding_down = True
-        elif timers['land'].active == False and (timers['fall'].finished and (holdAnimFrames < 0 and nextAnimFrames < 0) and not ((not holding_down) and (getInp('soft down') or getInp('hard down')))):
+        elif timers['fall'].finished and (holdAnimFrames < 0 and nextAnimFrames < 0) and not ((not holding_down) and (getInp('soft down') or getInp('hard down'))):
             currentShape.y += 1
             sounds['fall'].play()
             timers['fall'].duration = speed
