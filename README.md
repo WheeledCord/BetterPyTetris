@@ -1,7 +1,8 @@
 # pytetris
 ~~we made tetris in pygame. pain insued.~~\
 ~~we're making tetris in pygame. pain is ***eternal***~~\
-we made tetris in pygame. pain insued.
+~~we made tetris in pygame. pain insued.~~
+I, I made tetris in pygame, NO ONE ELSE. only me, since i am gods greatest programmer
 
 ## Default Controls
 **Left Rotate:** z\
