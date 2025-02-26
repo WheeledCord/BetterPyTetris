@@ -1,4 +1,4 @@
-# pytetris
+# PyTetris
 ~~we made tetris in pygame. pain insued.~~\
 ~~we're making tetris in pygame. pain is ***eternal***~~\
 ~~we made tetris in pygame. pain insued.~~
@@ -15,9 +15,13 @@ I, I made tetris in pygame, NO ONE ELSE. only me, since i am gods greatest progr
 **Pause:** enter\
 **Reset:** r\
 **Quit:** escape\
+**Toggle Drop Shaking:** s\
+**Toggle Pivot Indicator:** d\
+**Toggle FPS Display:** f\
 **Toggle Ghost:** g\
 **Toggle Colour Change:** h\
-**Toggle FPS Display:** j\
+**Toggle Particles:** j\
+**Toggle High Contrast Mode:** k\
 **Scale 1:** 1\
 **Scale 2:** 2\
 **Scale 3:** 3\
